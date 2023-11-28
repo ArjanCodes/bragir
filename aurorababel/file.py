@@ -1,6 +1,6 @@
 import click
-from constants import TOKEN_LIMIT
-from path_components import File, SRTPart
+from aurorababel.constants import TOKEN_LIMIT
+from aurorababel.path_components import File, SRTPart
 
 
 def read_file(file_path: str):
@@ -12,6 +12,7 @@ def read_file(file_path: str):
 def create_translation_file(file: File, content: str):
     with open(file.target_path, "a+", encoding="utf-8") as fileIO:
         fileIO.write(content)
+
 
 def chunk_content(file_path: str) -> tuple[list[SRTPart], list[int]]:
     buffer_limit: int = TOKEN_LIMIT

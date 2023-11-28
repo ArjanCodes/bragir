@@ -1,15 +1,16 @@
 import os
 import click
-from typing import Any
 
+from typing import Any
 from openai import OpenAI
-from client import translate_content
-from constants import BLACKLISTED_FILES
-from file import chunk_content, create_translation_file
-from languages import Languages, parse_languages
-from messages import PROMPT_HELP
-from path_components import File
-from timer import timing_decorator
+
+from aurorababel.constants import BLACKLISTED_FILES
+from aurorababel.file import chunk_content, create_translation_file
+from aurorababel.languages import Languages, parse_languages, to_output
+from aurorababel.messages import PROMPT_HELP
+from aurorababel.path_components import File
+from aurorababel.timer import timing_decorator
+from aurorababel.translator import translate_content
 
 
 def split_list_at_breakpoints(original_list: list[Any], breakpoints: list[int]):
@@ -27,11 +28,11 @@ def split_list_at_breakpoints(original_list: list[Any], breakpoints: list[int]):
 
 
 @timing_decorator
-def translate_srt(client: OpenAI, file: File, language: str) -> str:
+def translate_srt(translator: OpenAI, file: File, language: str) -> str:
     translated_text = ""
 
     if len(file.breakpoints) == 0:
-        translated_text += translate_content(client, file.contents, language)
+        translated_text += translate_content(translator, file.contents, language)
         click.echo(f"Translated the whole file {file.source_path}")
 
     if len(file.breakpoints) > 0:
@@ -44,7 +45,7 @@ def translate_srt(client: OpenAI, file: File, language: str) -> str:
                 else:
                     total += "\n \n" + part.srt_format
 
-            translated_text += translate_content(client, total, language)
+            translated_text += translate_content(translator, total, language)
 
             click.echo(f"Chunk {i + 1} translated")
 
@@ -85,6 +86,7 @@ def process_files(file_paths: list[str], languages: list[Languages]) -> list[Fil
 @click.option(
     "--api_key",
     "-k",
+    required=True, 
     envvar="OPENAI_API_KEY",
     help=PROMPT_HELP["api_key"],
 )
@@ -97,21 +99,23 @@ def process_files(file_paths: list[str], languages: list[Languages]) -> list[Fil
 @click.option(
     "--language",
     "-l",
+    required=True, 
+    type=click.Choice([language.value for language in Languages], case_sensitive=False),
     multiple=True,
     help=PROMPT_HELP["language"],
 )
 def translate(file: str, api_key: str, language: str, directory: str) -> None:
     if not api_key:
-        click.echo("Can not initiate openai client, please give an api key")
+        click.echo("Can not initiate openai translator, please give an api key")
         exit()
 
-    client = ""
+    translator = ""
     if api_key:
-        client = OpenAI(
+        translator = OpenAI(
             api_key=api_key,
         )
     else:
-        click.echo("Couldn't initate openai client")
+        click.echo("Couldn't initate openai translator")
         exit()
 
     if not directory and not file:
@@ -173,7 +177,7 @@ def translate(file: str, api_key: str, language: str, directory: str) -> None:
     for target_file in files:
         click.echo(f"Translating {target_file.name} to {target_file.language}")
         translated_content = translate_srt(
-            client, target_file, target_file.language.value
+            translator, target_file, target_file.language.value
         )
 
         click.echo(f"Translated {target_file.name} to {target_file.language}")
@@ -181,7 +185,3 @@ def translate(file: str, api_key: str, language: str, directory: str) -> None:
         click.echo(f"Creating target_file {target_file.target_path}")
         create_translation_file(target_file, translated_content)
         click.echo(f"Created target_file {target_file.target_path}")
-
-
-if __name__ == "__main__":
-    translate()

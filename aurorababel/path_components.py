@@ -1,11 +1,12 @@
-from dataclasses import field
-from io import BytesIO
 import math
 import tokenize
-from attr import dataclass
-from constants import TOKEN_LIMIT
 
-from languages import Languages
+from dataclasses import field, dataclass
+from io import BytesIO
+
+from aurorababel.constants import TOKEN_LIMIT
+
+from aurorababel.languages import Languages
 
 
 @dataclass
@@ -14,6 +15,7 @@ class Directory:
     root_path: str
     translation_paths: list[str] = field(default_factory=list[str])
     main_translation_path: str = ""
+
 
 @dataclass
 class SRTPart:
@@ -36,16 +38,19 @@ class SRTPart:
 
         # Get the number of tokens
         return len(tokens)
-    
+
     @property
     def srt_format(self):
-        return f"{self.index}\n{self.start_time} --> {self.end_time}\n{self.content}\n\n"
+        return (
+            f"{self.index}\n{self.start_time} --> {self.end_time}\n{self.content}\n\n"
+        )
 
 
 @dataclass
 class FileChunk:
     index: int
     content: str
+
 
 @dataclass
 class File:

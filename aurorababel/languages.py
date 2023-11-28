@@ -14,6 +14,7 @@ def to_output(enum_class: Type[Enum]) -> str:
     formatted_enum = " ".join([f"{enum.value}" for enum in enum_class])
     return formatted_enum
 
+
 def parse_languages(input_languages: Any):
     valid_languages: list[Languages] = []
     valid_string_languages = [language.value.lower() for language in Languages]
@@ -23,3 +24,7 @@ def parse_languages(input_languages: Any):
             valid_languages.append(Languages[target_language.upper()])
 
     return valid_languages
+
+
+if __name__ == "__main__":
+    print(to_output(Languages))
