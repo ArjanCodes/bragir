@@ -24,7 +24,3 @@ def parse_languages(input_languages: Any):
             valid_languages.append(Languages[target_language.upper()])
 
     return valid_languages
-
-
-if __name__ == "__main__":
-    print(to_output(Languages))

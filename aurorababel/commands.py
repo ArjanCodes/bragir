@@ -122,7 +122,6 @@ def translate(file: str, api_key: str, language: str, directory: str) -> None:
             base_path, file_name = os.path.split(file)
             updated_file_name = f"{target_language.value.lower()[:3]}_{file_name}"
             new_file_path = os.path.join(base_path, updated_file_name)
-            print(file)
 
             (contents, breakpoints) = chunk_content(file)
 
