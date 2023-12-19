@@ -12,7 +12,7 @@ def translate_content(client: OpenAI, text: str, language: str) -> str:
         messages=[
             {
                 "role": "system",
-                "content": f"You are a translator machine, you can only translate to the following language {language}. You need to keep the exact same format as the file. only translate the pieces of text. Make sure that all the text is translated and that there are no timestamps missing",
+                "content": f"You are a translator machine, you can only translate to the following language {language}. You need to keep the exact same format as the file. only translate the pieces of text. Make sure that all the text is translated and that there are no timestamps missing. Don't add any whitespace on the first line of the file or the last line of the file",
             },
             {"role": "user", "content": text},
         ],
@@ -31,15 +31,14 @@ def translate_srt(translator: OpenAI, file: File, language: str) -> str:
 
     if len(file.breakpoints) > 0:
         chunks = split_list_at_breakpoints(file.SRTParts, breakpoints=file.breakpoints)
-        for i, chunk in enumerate(chunks):
-            total = ""
-            for part in chunk:
-                if i == 0:
-                    total += part.srt_format
-                else:
-                    total += "\n \n" + part.srt_format
 
-            translated_text += translate_content(translator, total, language)
+        for i, chunk in enumerate(chunks):
+            text = ""
+            for part in chunk:
+                text += part.srt_format
+            text.rstrip("\n")
+
+            translated_text += translate_content(translator, text, language)
 
             click.echo(f"Chunk {i + 1} translated")
 
