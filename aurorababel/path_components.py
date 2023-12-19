@@ -1,8 +1,6 @@
 import math
-import tokenize
-
+import re
 from dataclasses import field, dataclass
-from io import BytesIO
 
 from aurorababel.constants import TOKEN_LIMIT
 
@@ -26,21 +24,12 @@ class SRTPart:
     source: str = ""
 
     @property
-    def number_of_tokens(self):
-        # Convert the text to bytes
-        text_bytes = self.content.encode("utf-8")
-
-        # Create a BytesIO object to simulate a file-like object
-        text_io = BytesIO(text_bytes)
-
-        # Tokenize the text using the tokenize module
-        tokens = list(tokenize.tokenize(text_io.readline))
-
-        # Get the number of tokens
-        return len(tokens)
+    def number_of_tokens(self) -> int:
+        words = re.findall(r"\w+|[^\w\s]", self.content, re.UNICODE)
+        return len(words) + self.content.count(' ') 
 
     @property
-    def srt_format(self):
+    def srt_format(self) -> str:
         return (
             f"{self.index}\n{self.start_time} --> {self.end_time}\n{self.content}\n\n"
         )
@@ -64,19 +53,10 @@ class File:
     breakpoints: list[int] = field(default_factory=list[int])
 
     @property
-    def number_of_tokens(self):
-        # Convert the text to bytes
-        text_bytes = self.contents.encode("utf-8")
-
-        # Create a BytesIO object to simulate a file-like object
-        text_io = BytesIO(text_bytes)
-
-        # Tokenize the text using the tokenize module
-        tokens = list(tokenize.tokenize(text_io.readline))
-
-        # Get the number of tokens
-        return len(tokens)
+    def number_of_tokens(self) -> int:
+        words = re.findall(r"\w+|[^\w\s]", self.contents, re.UNICODE)
+        return len(words) + self.contents.count(' ') 
 
     @property
-    def number_of_chunks(self):
+    def number_of_chunks(self) -> int:
         return math.ceil(self.number_of_tokens / TOKEN_LIMIT)

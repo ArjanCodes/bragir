@@ -1,78 +1,76 @@
 import os
 import click
 
-from typing import Any
-from openai import OpenAI
+from typing import Tuple
+from aurorababel.client import initiate_client
 
 from aurorababel.constants import BLACKLISTED_FILES
-from aurorababel.file import chunk_content, create_translation_file
-from aurorababel.languages import Languages, parse_languages, to_output
+from aurorababel.file import (
+    calculate_file_size,
+    chunk_content,
+    chunk_content_into_srt_parts,
+    create_file,
+    process_file,
+    process_files,
+    remove_files,
+)
+from aurorababel.languages import Languages, parse_languages
 from aurorababel.messages import PROMPT_HELP
-from aurorababel.path_components import File
-from aurorababel.timer import timing_decorator
-from aurorababel.translator import translate_content
+from aurorababel.path_components import File, SRTPart
+from aurorababel.time import update_timestamps
+from aurorababel.transcriber import transcribe_audio_files
+from aurorababel.translator import translate_srt
 
+@click.command()
+@click.option(
+    "--file_path", "-f", required=True, type=click.Path(exists=True, file_okay=True)
+)
+@click.option("--output_path", "-o", type=click.Path(file_okay=True))
+@click.option(
+    "--api_key",
+    "-k",
+    required=True,
+    envvar="OPENAI_API_KEY",
+    help=PROMPT_HELP["api_key"],
+)
+def transcribe(file_path: str, output_path: str, api_key: str) -> None:
+    transcriber = initiate_client(api_key=api_key)
 
-def split_list_at_breakpoints(original_list: list[Any], breakpoints: list[int]):
-    result: list[Any] = []
-    start_index = 0
+    file_size_mbytes = calculate_file_size(file_path)
 
-    for breakpoint in breakpoints:
-        result.append(original_list[start_index:breakpoint])
-        start_index = breakpoint
+    audio_paths: list[str] = [file_path]
+    if file_size_mbytes >= 25:
+        click.echo(f"Chunking {file_path} into smaller audio files.")
+        audio_paths = process_file(file_path)
+    
+    click.echo(f"Transcribing {file_path}")
+    transcripts: list[str] = transcribe_audio_files(transcriber, audio_paths)
 
-    # Append the remaining elements after the last breakpoint
-    result.append(original_list[start_index:])
+    click.echo("Constructing SRT parts")
+    videos_srts: list[Tuple[int, list[SRTPart]]] = [
+        (order, chunk_content_into_srt_parts(transcript))
+        for order, transcript in enumerate(transcripts)
+    ]
 
-    return result
+    click.echo("Updating timestamps")
+    sorted_videos = sorted(videos_srts)
 
+    srt_parts: list[SRTPart] = update_timestamps(sorted_videos)
 
-@timing_decorator
-def translate_srt(translator: OpenAI, file: File, language: str) -> str:
-    translated_text = ""
+    click.echo("Creating SRT file content")
+    contents = "".join([srt_part.srt_format for srt_part in srt_parts])
 
-    if len(file.breakpoints) == 0:
-        translated_text += translate_content(translator, file.contents, language)
-        click.echo(f"Translated the whole file {file.source_path}")
+    if output_path:
+        target_path = os.path.expanduser(output_path)
+    else:
+        root, _ = os.path.splitext(file_path)
+        target_path = root + ".srt"
 
-    if len(file.breakpoints) > 0:
-        chunks = split_list_at_breakpoints(file.SRTParts, breakpoints=file.breakpoints)
-        for i, chunk in enumerate(chunks):
-            total = ""
-            for part in chunk:
-                if i == 0:
-                    total += part.srt_format
-                else:
-                    total += "\n \n" + part.srt_format
+    with open(target_path, "w", encoding="utf-8") as fileIO:
+        fileIO.write(contents)
+        click.echo(f"Created {target_path} for video {file_path}")
 
-            translated_text += translate_content(translator, total, language)
-
-            click.echo(f"Chunk {i + 1} translated")
-
-    return translated_text
-
-
-def process_files(file_paths: list[str], languages: list[Languages]) -> list[File]:
-    processed_files: list[File] = []
-    res: list[File] = []
-    for file_path in file_paths:
-        (content, breakpoints) = chunk_content(file_path)
-        for language in languages:
-            base_path, file_name = os.path.split(file_path)
-            updated_file_name = f"{language.value.lower()[:3]}_{file_name}"
-            new_file_path = os.path.join(base_path, updated_file_name)
-            file = File(
-                name=file_path,
-                language=language,
-                SRTParts=content,
-                breakpoints=breakpoints,
-                target_path=new_file_path,
-                source_path=file_path,
-            )
-
-            processed_files.append(file)
-
-    return res
+    remove_files(audio_paths)
 
 
 @click.command()
@@ -86,7 +84,7 @@ def process_files(file_paths: list[str], languages: list[Languages]) -> list[Fil
 @click.option(
     "--api_key",
     "-k",
-    required=True, 
+    required=True,
     envvar="OPENAI_API_KEY",
     help=PROMPT_HELP["api_key"],
 )
@@ -99,24 +97,13 @@ def process_files(file_paths: list[str], languages: list[Languages]) -> list[Fil
 @click.option(
     "--language",
     "-l",
-    required=True, 
+    required=True,
     type=click.Choice([language.value for language in Languages], case_sensitive=False),
     multiple=True,
     help=PROMPT_HELP["language"],
 )
 def translate(file: str, api_key: str, language: str, directory: str) -> None:
-    if not api_key:
-        click.echo("Can not initiate openai translator, please give an api key")
-        exit()
-
-    translator = ""
-    if api_key:
-        translator = OpenAI(
-            api_key=api_key,
-        )
-    else:
-        click.echo("Couldn't initate openai translator")
-        exit()
+    translator = initiate_client(api_key=api_key)
 
     if not directory and not file:
         click.echo("Please provide a file or directory")
@@ -135,6 +122,7 @@ def translate(file: str, api_key: str, language: str, directory: str) -> None:
             base_path, file_name = os.path.split(file)
             updated_file_name = f"{target_language.value.lower()[:3]}_{file_name}"
             new_file_path = os.path.join(base_path, updated_file_name)
+            print(file)
 
             (contents, breakpoints) = chunk_content(file)
 
@@ -175,13 +163,12 @@ def translate(file: str, api_key: str, language: str, directory: str) -> None:
         click.echo(f"Processing {num_of_file_paths} files")
 
     for target_file in files:
-        click.echo(f"Translating {target_file.name} to {target_file.language}")
+        click.echo(f"Translating {target_file.name} to {target_file.language.value}")
         translated_content = translate_srt(
             translator, target_file, target_file.language.value
         )
 
         click.echo(f"Translated {target_file.name} to {target_file.language}")
 
-        click.echo(f"Creating target_file {target_file.target_path}")
-        create_translation_file(target_file, translated_content)
-        click.echo(f"Created target_file {target_file.target_path}")
+        create_file(target_file, translated_content)
+        click.echo(f"Created file {target_file.target_path}")
