@@ -1,10 +1,10 @@
 import os
 
 import click
-from aurorababel.constants import TOKEN_LIMIT
-from aurorababel.languages import Languages
-from aurorababel.path_components import File, SRTPart
-from aurorababel.transcriber import chunk_audio
+from aurora.constants import TOKEN_LIMIT
+from aurora.languages import Languages
+from aurora.path_components import File, SRTPart
+from aurora.transcriber import chunk_audio
 
 
 def calculate_file_size(file_path: str) -> float:

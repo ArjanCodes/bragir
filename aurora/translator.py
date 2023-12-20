@@ -1,9 +1,9 @@
 import click
 from openai import OpenAI
-from aurorababel.list import split_list_at_breakpoints
-from aurorababel.path_components import File
+from aurora.list import split_list_at_breakpoints
+from aurora.path_components import File
 
-from aurorababel.timer import timing_decorator
+from aurora.timer import timing_decorator
 
 
 def translate_content(client: OpenAI, text: str, language: str) -> str:

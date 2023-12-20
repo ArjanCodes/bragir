@@ -2,10 +2,10 @@ import os
 import click
 
 from typing import Tuple
-from aurorababel.client import initiate_client
+from aurora.client import initiate_client
 
-from aurorababel.constants import BLACKLISTED_FILES
-from aurorababel.file import (
+from aurora.constants import BLACKLISTED_FILES
+from aurora.file import (
     calculate_file_size,
     chunk_content,
     chunk_content_into_srt_parts,
@@ -14,12 +14,12 @@ from aurorababel.file import (
     process_files,
     remove_files,
 )
-from aurorababel.languages import Languages, parse_languages
-from aurorababel.messages import PROMPT_HELP
-from aurorababel.path_components import File, SRTPart
-from aurorababel.time import update_timestamps
-from aurorababel.transcriber import transcribe_audio_files
-from aurorababel.translator import translate_srt
+from aurora.languages import Languages, parse_languages
+from aurora.messages import PROMPT_HELP
+from aurora.path_components import File, SRTPart
+from aurora.time import update_timestamps
+from aurora.transcriber import transcribe_audio_files
+from aurora.translator import translate_srt
 
 @click.command()
 @click.option(

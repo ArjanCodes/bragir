@@ -1,4 +1,4 @@
-from aurorababel.languages import Languages, to_output
+from aurora.languages import Languages, to_output
 
 PROMPT_HELP = {
     "file": "Path to file",

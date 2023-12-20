@@ -2,9 +2,9 @@ import math
 import re
 from dataclasses import field, dataclass
 
-from aurorababel.constants import TOKEN_LIMIT
+from aurora.constants import TOKEN_LIMIT
 
-from aurorababel.languages import Languages
+from aurora.languages import Languages
 
 
 @dataclass

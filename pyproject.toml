@@ -1,5 +1,5 @@
 [project]
-name = "aurorababel"
+name = "aurora"
 version = "0.1.0"
 readme = "README.md"
 authors = [{ name = "Andreas Bergman", email = "andreas@arjancodes.com" }]
