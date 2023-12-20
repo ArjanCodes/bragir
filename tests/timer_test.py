@@ -1,5 +1,5 @@
 import time
-from aurorababel.timer import timing_decorator
+from aurora.timer import timing_decorator
 
 def test_decorated_function_with_extra_argument(capsys): # type: ignore
 
