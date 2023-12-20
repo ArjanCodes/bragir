@@ -1,5 +1,5 @@
 import time
-from aurora.timer import timing_decorator
+from bragir.timer import timing_decorator
 
 def test_decorated_function_with_extra_argument(capsys): # type: ignore
 

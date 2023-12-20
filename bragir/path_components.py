@@ -2,9 +2,9 @@ import math
 import re
 from dataclasses import field, dataclass
 
-from aurora.constants import TOKEN_LIMIT
+from bragir.constants import TOKEN_LIMIT
 
-from aurora.languages import Languages
+from bragir.languages import Languages
 
 
 @dataclass

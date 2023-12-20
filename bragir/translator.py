@@ -1,9 +1,9 @@
 import click
 from openai import OpenAI
-from aurora.list import split_list_at_breakpoints
-from aurora.path_components import File
+from bragir.list import split_list_at_breakpoints
+from bragir.path_components import File
 
-from aurora.timer import timing_decorator
+from bragir.timer import timing_decorator
 
 
 def translate_content(client: OpenAI, text: str, language: str) -> str:

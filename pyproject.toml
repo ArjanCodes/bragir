@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "aurora"
+name = "bragir"
 version = "0.1.0"
-description = "aurora translator cli"
+description = "bragir translator cli"
 authors = ["Andreas Bergman <andreas@arjancodes.com>"]
 license = "MIT"
 readme = "README.md"
@@ -20,4 +20,4 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-aurora = "aurora.__main__:cli"
+bragir = "bragir.__main__:cli"

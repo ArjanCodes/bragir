@@ -4,7 +4,7 @@ from pydub import AudioSegment  # type:ignore
 from pydub.silence import split_on_silence  # type:ignore
 from openai import OpenAI
 
-from aurora.timer import timing_decorator
+from bragir.timer import timing_decorator
 
 
 def chunk_audio(file_path: str, format: str = "mp4") -> list[Any]:

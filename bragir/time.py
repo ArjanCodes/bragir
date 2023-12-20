@@ -3,7 +3,7 @@ import re
 from typing import Tuple
 
 
-from aurora.path_components import SRTPart
+from bragir.path_components import SRTPart
 
 
 def to_timestamp(td: timedelta) -> str:

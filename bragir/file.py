@@ -1,10 +1,10 @@
 import os
 
 import click
-from aurora.constants import TOKEN_LIMIT
-from aurora.languages import Languages
-from aurora.path_components import File, SRTPart
-from aurora.transcriber import chunk_audio
+from bragir.constants import TOKEN_LIMIT
+from bragir.languages import Languages
+from bragir.path_components import File, SRTPart
+from bragir.transcriber import chunk_audio
 
 
 def calculate_file_size(file_path: str) -> float:

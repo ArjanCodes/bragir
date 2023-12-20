@@ -2,10 +2,10 @@ import os
 import click
 
 from typing import Tuple
-from aurora.client import initiate_client
+from bragir.client import initiate_client
 
-from aurora.constants import BLACKLISTED_FILES
-from aurora.file import (
+from bragir.constants import BLACKLISTED_FILES
+from bragir.file import (
     calculate_file_size,
     chunk_content,
     chunk_content_into_srt_parts,
@@ -14,12 +14,12 @@ from aurora.file import (
     process_files,
     remove_files,
 )
-from aurora.languages import Languages, parse_languages
-from aurora.messages import PROMPT_HELP
-from aurora.path_components import File, SRTPart
-from aurora.time import update_timestamps
-from aurora.transcriber import transcribe_audio_files
-from aurora.translator import translate_srt
+from bragir.languages import Languages, parse_languages
+from bragir.messages import PROMPT_HELP
+from bragir.path_components import File, SRTPart
+from bragir.time import update_timestamps
+from bragir.transcriber import transcribe_audio_files
+from bragir.translator import translate_srt
 
 @click.command()
 @click.option(
