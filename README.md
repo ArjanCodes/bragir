@@ -1,11 +1,11 @@
-# aurora
+# Bragir
 ![Authors](https://kajabi-storefronts-production.kajabi-cdn.com/kajabi-storefronts-production/file-uploads/themes/2149113237/settings_images/4adb13d-824c-454-a5c-72b2c6f06e1_Arjan_Codes_-_FInal_Files.png)
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 ## Description
 
-The aurora CLI is a command-line application built using Click. Its primary purpose is to facilitate the translation of SubRip Subtitle (SRT) files using the OpenAI GPT-based language model, ChatGPT.
+The bragir CLI is a command-line application built using Click. Its primary purpose is to facilitate the translation of SubRip Subtitle (SRT) files using the OpenAI GPT-based language model, ChatGPT.
 
 ## Features
 
@@ -15,7 +15,7 @@ The aurora CLI is a command-line application built using Click. Its primary purp
 
 ## Table of Contents
 
-- [aurora](#aurora)
+- [bragir](#bragir)
   - [Description](#description)
   - [Features](#features)
   - [Table of Contents](#table-of-contents)
@@ -29,7 +29,7 @@ The aurora CLI is a command-line application built using Click. Its primary purp
 Provide step-by-step instructions on how to install your project. Include any dependencies and how to resolve them.
 
 ```bash
-pip install aurora
+pip install bragir
 ```
 
 # Usage
@@ -37,13 +37,13 @@ pip install aurora
 Translate a single file to one language:
 
 ```
-aurora --file input.srt --language fr 
+bragir --file input.srt --language fr 
 ```
 
 Translate multiple files to multiple languages:
 
 ```
-aurora --file input_1.srt --file input_2.srt --language French --language German 
+bragir --file input_1.srt --file input_2.srt --language French --language German 
 ```
 
 # Contributing
