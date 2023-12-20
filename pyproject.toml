@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bragir"
-version = "0.1.0"
+version = "0.1.1"
 description = "bragir translator cli"
 authors = ["Andreas Bergman <andreas@arjancodes.com>"]
 license = "MIT"
