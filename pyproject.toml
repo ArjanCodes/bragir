@@ -3,7 +3,7 @@ name = "aurora"
 version = "0.1.0"
 readme = "README.md"
 authors = [{ name = "Andreas Bergman", email = "andreas@arjancodes.com" }]
-description = "aurorababel translator cli"
+description = "aurora translator cli"
 requires-python = ">=3.9"
 dependencies = [
     "click>=8.1",
@@ -11,9 +11,9 @@ dependencies = [
 ]
 
 [tool.poetry]
-name = "aurorababel"
+name = "aurora"
 version = "0.1.0"
-description = "aurorababel translator cli"
+description = "aurora translator cli"
 authors = ["Andreas Bergman <andreas@arjancodes.com>"]
 license = "MIT"
 readme = "README.md"
