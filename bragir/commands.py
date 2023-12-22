@@ -21,11 +21,21 @@ from bragir.time import update_timestamps
 from bragir.transcriber import transcribe_audio_files
 from bragir.translator import translate_srt
 
-@click.command()
+
+@click.command(options_metavar='<options>')
 @click.option(
-    "--file_path", "-f", required=True, type=click.Path(exists=True, file_okay=True)
+    "--file_path",
+    "-f",
+    required=True,
+    type=click.Path(exists=True, file_okay=True),
+    help=PROMPT_HELP["file_path"],
 )
-@click.option("--output_path", "-o", type=click.Path(file_okay=True))
+@click.option(
+    "--output_path",
+    "-o",
+    type=click.Path(file_okay=True),
+    help=PROMPT_HELP["output_path"],
+)
 @click.option(
     "--api_key",
     "-k",
@@ -34,6 +44,10 @@ from bragir.translator import translate_srt
     help=PROMPT_HELP["api_key"],
 )
 def transcribe(file_path: str, output_path: str, api_key: str) -> None:
+    """
+    The transcribe command generates an SRT file based on an .mp4 or .mp3 file.
+    If output is not set, then it will take the file_path name and change the extension.
+    """
     transcriber = initiate_client(api_key=api_key)
 
     file_size_mbytes = calculate_file_size(file_path)
@@ -42,7 +56,7 @@ def transcribe(file_path: str, output_path: str, api_key: str) -> None:
     if file_size_mbytes >= 25:
         click.echo(f"Chunking {file_path} into smaller audio files.")
         audio_paths = process_file(file_path)
-    
+
     click.echo(f"Transcribing {file_path}")
     transcripts: list[str] = transcribe_audio_files(transcriber, audio_paths)
 
@@ -73,13 +87,14 @@ def transcribe(file_path: str, output_path: str, api_key: str) -> None:
     remove_files(audio_paths)
 
 
-@click.command()
+@click.command(options_metavar='<options>')
 @click.option(
     "--file",
     "-f",
     type=click.Path(dir_okay=True, exists=True),
     prompt="Enter path to file",
     help=PROMPT_HELP["file"],
+    metavar='<path>'
 )
 @click.option(
     "--api_key",
@@ -93,6 +108,7 @@ def transcribe(file_path: str, output_path: str, api_key: str) -> None:
     "-d",
     type=click.Path(dir_okay=True, exists=True),
     help=PROMPT_HELP["directory"],
+    metavar='<directory>'
 )
 @click.option(
     "--language",
@@ -100,9 +116,12 @@ def transcribe(file_path: str, output_path: str, api_key: str) -> None:
     required=True,
     type=click.Choice([language.value for language in Languages], case_sensitive=False),
     multiple=True,
-    help=PROMPT_HELP["language"],
+    help=PROMPT_HELP["language"]
 )
 def translate(file: str, api_key: str, language: str, directory: str) -> None:
+    """
+    The translate command, translates either a single SRT file or files or directory of SRT files into the wanted language.
+    """
     translator = initiate_client(api_key=api_key)
 
     if not directory and not file:
