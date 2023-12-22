@@ -7,16 +7,13 @@ from bragir.path_components import SRTPart
 
 
 def to_timestamp(td: timedelta) -> str:
-    # Calculate total seconds
     total_seconds = int(td.total_seconds())
     hours = total_seconds // 3600
     minutes = (total_seconds % 3600) // 60
     seconds = total_seconds % 60
 
-    # Calculate milliseconds
     milliseconds = td.microseconds // 1000
 
-    # Format into a string
     return f"{hours:02}:{minutes:02}:{seconds:02}.{milliseconds:03}"
 
 
