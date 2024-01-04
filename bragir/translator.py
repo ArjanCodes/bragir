@@ -40,6 +40,9 @@ def translate_srt(translator: OpenAI, file: File, language: str) -> str:
 
             translated_text += translate_content(translator, text, language)
 
+            # Add new block onto the text
+            translated_text += "\n\n"
+
             click.echo(f"Chunk {i + 1} translated")
 
     return translated_text
