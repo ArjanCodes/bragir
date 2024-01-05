@@ -5,45 +5,140 @@
 
 ## Description
 
-The bragir CLI is a command-line application built using Click. Its primary purpose is to facilitate the translation of SubRip Subtitle (SRT) files using the OpenAI GPT-based language model, ChatGPT.
+The bragir CLI is a command-line application built using Click. Its primary purpose is to handle and generate SubRip Subtitle (SRT) files using ChatGPT and Whisper from Openai.
 
 ## Features
 
-- **Translation:** Translate the content of SRT files from one language to another using the power of ChatGPT.
-- **Batch Processing:** Process a single SRT file, multiple files, or an entire directory, providing flexibility and efficiency.
+- **Translation:** Translate the content of SRT files from one language to another using ChatGPT.
+- **Transcription:** Trancribe the content of video and audio files from one language to another using Whisper.
+- **Batch Processing:** Process a single file, multiple files, or an entire directory, providing flexibility and efficiency.
 - **Easy-to-Use Interface:** Utilize a user-friendly command-line interface powered by Click, making translation tasks straightforward.
 
 ## Table of Contents
 
-- [bragir](#bragir)
+- [Bragir](#bragir)
   - [Description](#description)
   - [Features](#features)
   - [Table of Contents](#table-of-contents)
   - [Installation](#installation)
+    - [FFmpeg](#ffmpeg)
+      - [Macos](#macos)
+      - [Linux](#linux)
+      - [Windows](#windows)
+    - [OpenAI](#openai)
+    - [Bragir](#bragir-1)
 - [Usage](#usage)
+    - [Examples](#examples)
 - [Contributing](#contributing)
 - [License](#license)
 
 ## Installation
 
-Provide step-by-step instructions on how to install your project. Include any dependencies and how to resolve them.
+In order to use the full potential of Bragir, FFmpeg is needed to be installed on the system and you need to obtain an Openai key.
 
+### FFmpeg
+#### Macos
+**Using brew**
+```zsh
+brew install ffmpeg
+```
+
+#### Linux
+
+Update avaiable linux packages
+```bash
+ sudo apt update
+```
+Install ffmpeg
+```bash
+ sudo apt install ffmpeg
+```
+
+#### Windows
+
+Download the .exe from official [ffmpeg-website](https://ffmpeg.org/download.html)
+
+Extract the contents of the zip file and rename the file to FFmpeg.
+
+Move the folder into the main drive (Usually c:/)
+
+Open command prompt as administrator, and add FFmpeg to your system path
+
+```bash
+setx /m PATH "C:\ffmpeg\bin;%PATH%"
+```
+
+**Verifyting the installation**
+In order to see if the installation of FFmpeg is correct, run the following command
+```bash
+ffmpeg --version 
+```
+
+If a version is displayed, then FFmpeg is installed correctly.
+
+### OpenAI
+
+Currently, this tool relise on OpenAIs API. That means that an OpenAI api-key is crucial. See the following resource of [how to get an OpenAI api-key](https://platform.openai.com/docs/quickstart?context=python)
+
+### Bragir
+Use pip to install Bragir
 ```bash
 pip install bragir
 ```
 
+Check if installation is complete
+
+```
+bragir --version
+```
+If a version is displayed, then Bragir is installed correctly.
+
+
 # Usage
 
+Bragir comes with two commands, transcribe and translate. Transcribe will always generate an file with extension `.srt`. The translate command has only been tested with SRT-files, however other files would work. However, Bragir is not intended to translate other file types  
+
+In order to use either command, a Openai needs to be loaded into the terminal session or as an flag to the command.
+
+Load Openai into session
+```
+export OPENAI_KEY=<VALUE>
+```
+
+Flag in command:
+```
+bragir translate ... --api_key <VALUE>
+```
+
+### Examples
 Translate a single file to one language:
 
 ```
-bragir --file input.srt --language fr 
+bragir translate --file input.srt --language fr 
 ```
 
 Translate multiple files to multiple languages:
 
 ```
-bragir --file input_1.srt --file input_2.srt --language French --language German 
+bragir translate --file input_1.srt --file input_2.srt --language French --language German 
+```
+
+Translate files in a directory to multiple languages:
+
+```
+bragir translate --directory <DIRECTORY_PATH> --language French --language German --api_key <OPENAI_KEY> 
+```
+
+Transcribe file:
+
+```
+bragir transcribe --directory <DIRECTORY_PATH> --api_key <OPENAI_KEY> 
+```
+
+Transcribe files in a directory:
+
+```
+bragir transcribe --directory <DIRECTORY_PATH> --api_key <OPENAI_KEY> 
 ```
 
 # Contributing
