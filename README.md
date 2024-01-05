@@ -100,7 +100,7 @@ Bragir comes with two commands, transcribe and translate. Transcribe will always
 
 In order to use either command, a Openai needs to be loaded into the terminal session or as an flag to the command.
 
-Load Openai into session
+Load Openai key as an enviroment variable into current session
 ```
 export OPENAI_KEY=<VALUE>
 ```
@@ -114,13 +114,13 @@ bragir translate ... --api_key <VALUE>
 Translate a single file to one language:
 
 ```
-bragir translate --file input.srt --language fr 
+bragir translate --file <FILE_PATH> --language fr 
 ```
 
 Translate multiple files to multiple languages:
 
 ```
-bragir translate --file input_1.srt --file input_2.srt --language French --language German 
+bragir translate --file <FILE_PATH> --file <FILE_PATH> --language French --language German 
 ```
 
 Translate files in a directory to multiple languages:
@@ -132,7 +132,7 @@ bragir translate --directory <DIRECTORY_PATH> --language French --language Germa
 Transcribe file:
 
 ```
-bragir transcribe --directory <DIRECTORY_PATH> --api_key <OPENAI_KEY> 
+bragir transcribe --file <FILE_PATH> --api_key <OPENAI_KEY> 
 ```
 
 Transcribe files in a directory:
