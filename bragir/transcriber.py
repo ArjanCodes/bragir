@@ -16,6 +16,7 @@ def chunk_audio(file_path: str, format: str = "mp4") -> list[Any]:
         sound,
         min_silence_len=1000,
         silence_thresh=-40,
+        keep_silence=True
     )
 
     return chunks
