@@ -5,6 +5,7 @@ from . import commands
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
 @click.group(context_settings=CONTEXT_SETTINGS)
+@click.version_option()
 def cli():
     """
     Bragir is an tool that can generate SRT files from videos and translate SRT files.
@@ -16,3 +17,4 @@ def cli():
 
 cli.add_command(commands.translate)
 cli.add_command(commands.transcribe)
+
