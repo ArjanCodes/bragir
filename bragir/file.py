@@ -110,14 +110,17 @@ def process_files(file_paths: list[str], languages: list[Languages]) -> list[Fil
 
 
 def process_file(file_path: str) -> list[str]:
-    chunks = chunk_audio(file_path)
+    _, file_extension = os.path.splitext(file_path)
+    file_extension = file_extension.lower().replace(".", "")
+
+    chunks = chunk_audio(file_path, format=file_extension)
     directory, base_name = os.path.split(file_path)
 
     chunk_paths: list[str] = []
     for i, chunk in enumerate(chunks):
         new_base_name = f"{i}_{base_name}"
         new_path = os.path.join(directory, new_base_name)
-        chunk.export(new_path, format="mp3")
+        chunk.export(new_path, format=file_extension)
         chunk_paths.append(new_path)  # type:ignore
 
     return chunk_paths
@@ -134,6 +137,8 @@ def remove_files(file_paths: list[str]):
             os.remove(path)
             click.echo(f"File {path} has been successfully removed.")
         except PermissionError as e:
-            raise click.ClickException(f"Permission denied while trying to remove {path}: {e}")
+            raise click.ClickException(
+                f"Permission denied while trying to remove {path}: {e}"
+            )
         except Exception as e:
             raise click.ClickException(f"Error removing file {path}: {e}")
