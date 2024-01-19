@@ -114,13 +114,13 @@ bragir translate ... --api_key <VALUE>
 Translate a single file to one language:
 
 ```
-bragir translate --file <FILE_PATH> --language fr 
+bragir translate --file_path <FILE_PATH> --language fr 
 ```
 
 Translate multiple files to multiple languages:
 
 ```
-bragir translate --file <FILE_PATH> --file <FILE_PATH> --language French --language German 
+bragir translate --file_path <FILE_PATH> --file_path <FILE_PATH> --language French --language German 
 ```
 
 Translate files in a directory to multiple languages:
@@ -132,7 +132,7 @@ bragir translate --directory <DIRECTORY_PATH> --language French --language Germa
 Transcribe file:
 
 ```
-bragir transcribe --file <FILE_PATH> --api_key <OPENAI_KEY> 
+bragir transcribe --file_path <FILE_PATH> --api_key <OPENAI_KEY> 
 ```
 
 Transcribe files in a directory:
