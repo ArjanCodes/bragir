@@ -1,5 +1,8 @@
 from pydub import AudioSegment
-from pydub.silence import split_on_silence  # type:ignore
+from pydub.silence import split_on_silence # type:ignore
+from bragir.audio.grouping import group_objects 
+
+from bragir.constants import DURATION_SECONDS_25MB  # type:ignore
 
 def chunk_audio(file_path: str, format: str = "mp4") -> list[AudioSegment]:
     sound: AudioSegment = AudioSegment.from_file(  # type:ignore
