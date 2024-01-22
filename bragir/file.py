@@ -4,8 +4,12 @@ import click
 from bragir.constants import TOKEN_LIMIT
 from bragir.languages import Languages
 from bragir.path_components import File, SRTPart
-from bragir.transcriber import chunk_audio
+from bragir.audio.chunking import chunk_audio
 
+def calculate_duration_ms(file_size_mb: int, bitrate_kbps: int) -> float:
+    file_size_bits = file_size_mb * 8 * 1024 * 1024  # Convert MB to bits
+    duration_ms = (file_size_bits / bitrate_kbps) * 1000  # Calculate duration in milliseconds
+    return duration_ms
 
 def calculate_file_size(file_path: str) -> float:
     file_size_bytes = os.path.getsize(file_path)
@@ -120,7 +124,7 @@ def process_file(file_path: str) -> list[str]:
     for i, chunk in enumerate(chunks):
         new_base_name = f"{i}_{base_name}"
         new_path = os.path.join(directory, new_base_name)
-        chunk.export(new_path, format=file_extension)
+        chunk.export(new_path, format=file_extension)  # type:ignore
         chunk_paths.append(new_path)  # type:ignore
 
     return chunk_paths

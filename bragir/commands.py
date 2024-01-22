@@ -19,8 +19,8 @@ from bragir.messages import PROMPT_HELP
 from bragir.path import get_files_in_directory
 from bragir.path_components import File, SRTPart
 from bragir.time import update_timestamps
-from bragir.transcriber import transcribe_audio_files
-from bragir.translator import translate_srt
+from bragir.transcription.transcription import transcribe_audio_files
+from bragir.translation.translation import translate_srt
 
 
 @click.command(options_metavar="<options>")
