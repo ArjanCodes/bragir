@@ -1,8 +1,12 @@
+# Constants for file operations
+
+# List of files to be ignored during processing
 BLACKLISTED_FILES = [".DS_Store"]
 
+# Maximum number of tokens for transcription
 TOKEN_LIMIT = 1500
 
-
+# Bitrates in kbps for different audio file formats
 BITRATES_KBPS = {
     "mp3": [128, 192, 256, 320],
     "mp4": [96, 128, 160, 192, 256, 320],
@@ -13,7 +17,7 @@ BITRATES_KBPS = {
     "webm": [500, 1000, 1500, 3000, 4000, 10000],
 }
 
-# With Highest possible KBPS
+# Duration in seconds for a 25MB file with the highest possible kbps for different audio file formats
 DURATION_SECONDS_25MB = {
     "mp3": 640.0,
     "mp4": 640.4,

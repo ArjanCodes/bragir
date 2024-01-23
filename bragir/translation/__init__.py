@@ -1,7 +1,7 @@
 import click
 from openai import OpenAI
+from bragir.files.file import File
 from bragir.list import split_list_at_breakpoints
-from bragir.path_components import File
 
 from bragir.timer import timing_decorator
 

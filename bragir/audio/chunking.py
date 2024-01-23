@@ -1,5 +1,6 @@
 from pydub import AudioSegment
 from pydub.silence import split_on_silence  # type:ignore
+
 from bragir.audio.grouping import group_audio_segments
 from bragir.constants import DURATION_SECONDS_25MB
 

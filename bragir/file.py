@@ -2,9 +2,10 @@ import os
 
 import click
 from bragir.constants import TOKEN_LIMIT
+from bragir.files.file import File
 from bragir.languages import Languages
-from bragir.path_components import File, SRTPart
 from bragir.audio.chunking import chunk_audio
+from bragir.srt.srt_part import SRTPart
 
 
 def calculate_duration_ms(file_size_mb: int, bitrate_kbps: int) -> float:

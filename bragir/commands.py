@@ -8,16 +8,17 @@ from bragir.constants import BLACKLISTED_FILES
 from bragir.file import (
     chunk_content,
     chunk_content_into_srt_parts,
-    create_file,
     process_files
 )
+from bragir.files.file import File
+from bragir.files.operations import create_file
 from bragir.languages import Languages, parse_languages
 from bragir.messages import PROMPT_HELP
 from bragir.path import get_files_in_directory
-from bragir.path_components import File, SRTPart
+from bragir.srt.srt_part import SRTPart
 from bragir.time import update_timestamps
-from bragir.transcription.transcription import transcribe_file
-from bragir.translation.translation import translate_srt
+from bragir.transcription import transcribe_file
+from bragir.translation import translate_srt
 
 
 @click.command(options_metavar="<options>")
