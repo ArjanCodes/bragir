@@ -1,6 +1,6 @@
 from pydub import AudioSegment
 from pydub.silence import split_on_silence  # type:ignore
-from bragir.audio.grouping import group_objects
+from bragir.audio.grouping import group_audio_segments
 from bragir.constants import DURATION_SECONDS_25MB
 
 
@@ -15,4 +15,4 @@ def chunk_audio(file_path: str, format: str = "mp4") -> list[AudioSegment]:
 
     limit = DURATION_SECONDS_25MB[format] * 0.9
 
-    return group_objects(chunks, limit)
+    return group_audio_segments(chunks, limit)

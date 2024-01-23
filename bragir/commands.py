@@ -6,20 +6,17 @@ from bragir.client import initiate_client
 
 from bragir.constants import BLACKLISTED_FILES
 from bragir.file import (
-    calculate_file_size,
     chunk_content,
     chunk_content_into_srt_parts,
     create_file,
-    process_file,
-    process_files,
-    remove_files,
+    process_files
 )
 from bragir.languages import Languages, parse_languages
 from bragir.messages import PROMPT_HELP
 from bragir.path import get_files_in_directory
 from bragir.path_components import File, SRTPart
 from bragir.time import update_timestamps
-from bragir.transcription.transcription import transcribe_audio_files
+from bragir.transcription.transcription import transcribe_file
 from bragir.translation.translation import translate_srt
 
 
@@ -75,16 +72,9 @@ def transcribe(
 
     click.echo(f"Processing {len(file_paths)} files")
 
-    tmp_audio_paths: list[str] = []
     for path in file_paths:
-        file_size_mbytes = calculate_file_size(path)
-
-        if file_size_mbytes >= 25:
-            click.echo(f"Chunking {path} into smaller audio files.")
-            tmp_audio_paths = [*tmp_audio_paths, *process_file(path)]
-
         click.echo(f"Transcribing {path}")
-        transcripts: list[str] = transcribe_audio_files(transcriber, tmp_audio_paths)
+        transcripts: list[str] = transcribe_file(transcriber, path)
 
         click.echo("Constructing SRT parts")
         videos_srts: list[Tuple[int, list[SRTPart]]] = [
@@ -109,8 +99,6 @@ def transcribe(
         with open(target_path, "w", encoding="utf-8") as fileIO:
             fileIO.write(contents)
             click.echo(f"Created {target_path} for video {path}")
-
-    remove_files(tmp_audio_paths)
 
 
 @click.command(options_metavar="<options>")

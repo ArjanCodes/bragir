@@ -6,10 +6,14 @@ from bragir.languages import Languages
 from bragir.path_components import File, SRTPart
 from bragir.audio.chunking import chunk_audio
 
+
 def calculate_duration_ms(file_size_mb: int, bitrate_kbps: int) -> float:
     file_size_bits = file_size_mb * 8 * 1024 * 1024  # Convert MB to bits
-    duration_ms = (file_size_bits / bitrate_kbps) * 1000  # Calculate duration in milliseconds
+    duration_ms = (
+        file_size_bits / bitrate_kbps
+    ) * 1000  # Calculate duration in milliseconds
     return duration_ms
+
 
 def calculate_file_size(file_path: str) -> float:
     file_size_bytes = os.path.getsize(file_path)
