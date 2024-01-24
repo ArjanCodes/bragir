@@ -2,13 +2,15 @@ import os
 import click
 
 from typing import Tuple
+from bragir.logger import logger
 from bragir.client import initiate_client
 
 from bragir.constants import BLACKLISTED_FILES
 from bragir.file import (
     chunk_content,
     chunk_content_into_srt_parts,
-    process_files
+    get_new_file_path,
+    process_files,
 )
 from bragir.files.file import File
 from bragir.files.operations import create_file
@@ -19,7 +21,6 @@ from bragir.srt.srt_part import SRTPart
 from bragir.time import update_timestamps
 from bragir.transcription import transcribe_file
 from bragir.translation import translate_srt
-
 
 @click.command(options_metavar="<options>")
 @click.option(
@@ -56,8 +57,9 @@ def transcribe(
     The transcribe command generates an SRT file based on an .mp4 or .mp3 file.
     If output is not set, then it will take the file_path name and change the extension.
     """
+    logger.info("Starting transcription")
     if not directory_path and not file_path:
-        click.echo("Please provide a file or directory")
+        logger.info("Please provide a file or directory")
         exit(1)
 
     transcriber = initiate_client(api_key=api_key)
@@ -71,24 +73,20 @@ def transcribe(
     if file_path:
         file_paths.append(file_path)
 
-    click.echo(f"Processing {len(file_paths)} files")
+    logger.info(f"Starting transcription of {file_path}")
 
     for path in file_paths:
-        click.echo(f"Transcribing {path}")
         transcripts: list[str] = transcribe_file(transcriber, path)
 
-        click.echo("Constructing SRT parts")
         videos_srts: list[Tuple[int, list[SRTPart]]] = [
             (order, chunk_content_into_srt_parts(transcript))
             for order, transcript in enumerate(transcripts)
         ]
 
-        click.echo("Updating timestamps")
         sorted_videos = sorted(videos_srts)
 
         srt_parts: list[SRTPart] = update_timestamps(sorted_videos)
 
-        click.echo("Creating SRT file content")
         contents = "".join([srt_part.srt_format for srt_part in srt_parts])
 
         if output_path:
@@ -99,6 +97,7 @@ def transcribe(
 
         with open(target_path, "w", encoding="utf-8") as fileIO:
             fileIO.write(contents)
+            logger.info(f"Created {target_path} for video {path}")
             click.echo(f"Created {target_path} for video {path}")
 
 
@@ -137,6 +136,8 @@ def translate(file: str, api_key: str, language: str, directory: str) -> None:
     """
     The translate command, translates either a single SRT file or files or directory of SRT files into the wanted language.
     """
+    logger.info("Starting transcription")
+
     translator = initiate_client(api_key=api_key)
 
     if not directory and not file:
@@ -145,17 +146,16 @@ def translate(file: str, api_key: str, language: str, directory: str) -> None:
 
     translate_to_languages: list[Languages] = parse_languages(language)
 
-    click.echo(
-        f"Translating to following language/languages: {' '.join([language.value for language in translate_to_languages])}"
-    )
+    logger.info(f"Translating to following language/languages: {' '.join([language.value for language in translate_to_languages])}")
 
     files: list[File] = []
     if file:
-        click.echo(f"Translating file {file}")
+        logger.info(f"Adding file {file} for translation")
+
         for target_language in translate_to_languages:
-            base_path, file_name = os.path.split(file)
-            updated_file_name = f"{target_language.value.lower()[:3]}_{file_name}"
-            new_file_path = os.path.join(base_path, updated_file_name)
+            logger.info(f"Adding file {file} with {target_language.value} for translation")
+
+            new_file_path = get_new_file_path(file, target_language)
 
             (contents, breakpoints) = chunk_content(file)
 
@@ -177,31 +177,35 @@ def translate(file: str, api_key: str, language: str, directory: str) -> None:
             for nested_file in nested_files:
                 if nested_file not in BLACKLISTED_FILES:
                     # Create the full path to the file
+                    logger.info(f"Adding file {nested_file} for translation")
                     directory_file_paths.append(os.path.join(root, nested_file))
 
         num_of_file_paths = len(directory_file_paths)
 
         if num_of_file_paths == 1:
-            click.echo(f"Processing {num_of_file_paths} file in directory {directory}")
+            logger.info(f"Processing {num_of_file_paths} file in directory {directory}")
         else:
-            click.echo(f"Processing {num_of_file_paths} files in directory {directory}")
+            logger.info(f"Processing {num_of_file_paths} files in directory {directory}")
 
         files = process_files(directory_file_paths, translate_to_languages)
 
     num_of_file_paths = len(files)
 
     if num_of_file_paths == 1:
-        click.echo(f"Processing {num_of_file_paths} file")
+        logger.info(f"Processing {num_of_file_paths} file")
     else:
-        click.echo(f"Processing {num_of_file_paths} files")
+        logger.info(f"Processing {num_of_file_paths} files")
 
     for target_file in files:
-        click.echo(f"Translating {target_file.name} to {target_file.language.value}")
+        logger.info(f"Translating {target_file.name} to {target_file.language.value}")
+
         translated_content = translate_srt(
             translator, target_file, target_file.language.value
         )
 
-        click.echo(f"Translated {target_file.name} to {target_file.language}")
+        logger.info(f"Translated {target_file.name} to {target_file.language}")
 
         create_file(target_file, translated_content)
+        
+        logger.info(f"Created file {target_file.target_path}")
         click.echo(f"Created file {target_file.target_path}")

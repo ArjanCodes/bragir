@@ -1,6 +1,7 @@
 from datetime import timedelta
 import re
 from typing import Tuple
+from bragir.logger import logger
 
 from bragir.srt.srt_part import SRTPart
 
@@ -33,6 +34,7 @@ def update_timestamps(videos_srts: list[Tuple[int, list[SRTPart]]]) -> list[SRTP
     video_end_time = timedelta(hours=0, minutes=0, seconds=0)
     all_srt_parts: list[SRTPart] = []
 
+    logger.info("Updating timestamps")
     for _order, srt_parts in sorted(videos_srts):
         for srt_part in srt_parts:
             srt_part.start_time = to_timestamp(

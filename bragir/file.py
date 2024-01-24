@@ -6,7 +6,7 @@ from bragir.files.file import File
 from bragir.languages import Languages
 from bragir.audio.chunking import chunk_audio
 from bragir.srt.srt_part import SRTPart
-
+from bragir.logger import logger
 
 def calculate_duration_ms(file_size_mb: int, bitrate_kbps: int) -> float:
     file_size_bits = file_size_mb * 8 * 1024 * 1024  # Convert MB to bits
@@ -30,6 +30,12 @@ def read_file(file_path: str):
 def create_file(file: File, content: str):
     with open(file.target_path, "a+", encoding="utf-8") as fileIO:
         fileIO.write(content)
+
+def get_new_file_path(file: str, target_language: Languages) -> str:
+    base_path, file_name = os.path.split(file)
+    updated_file_name = f"{target_language.value.lower()[:3]}_{file_name}"
+    new_file_path = os.path.join(base_path, updated_file_name)
+    return new_file_path
 
 
 def chunk_content_into_srt_parts(content: str) -> list[SRTPart]:
@@ -136,15 +142,15 @@ def process_file(file_path: str) -> list[str]:
 
 
 def remove_files(file_paths: list[str]):
-    click.echo("Starting cleanup process...")
+    logger.info("Starting cleanup process...")
     for path in file_paths:
         if not os.path.exists(path):
-            click.echo(f"File {path} not found. Skipping.")
+            logger.info(f"File {path} not found. Skipping.")
             continue
 
         try:
             os.remove(path)
-            click.echo(f"File {path} has been successfully removed.")
+            logger.info(f"File {path} has been successfully removed.")
         except PermissionError as e:
             raise click.ClickException(
                 f"Permission denied while trying to remove {path}: {e}"

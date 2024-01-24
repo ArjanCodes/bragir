@@ -1,8 +1,8 @@
-import click
 from openai import OpenAI
+
 from bragir.files.file import File
 from bragir.list import split_list_at_breakpoints
-
+from bragir.logger import logger
 from bragir.timer import timing_decorator
 
 
@@ -23,11 +23,13 @@ def translate_content(client: OpenAI, text: str, language: str) -> str:
 
 @timing_decorator
 def translate_srt(translator: OpenAI, file: File, language: str) -> str:
+    logger.info(f"Translating {file.source_path} to {language}")
+
     translated_text = ""
 
     if len(file.breakpoints) == 0:
         translated_text += translate_content(translator, file.contents, language)
-        click.echo(f"Translated the whole file {file.source_path}")
+        
 
     if len(file.breakpoints) > 0:
         chunks = split_list_at_breakpoints(file.SRTParts, breakpoints=file.breakpoints)
@@ -43,6 +45,7 @@ def translate_srt(translator: OpenAI, file: File, language: str) -> str:
             # Add new block onto the text
             translated_text += "\n\n"
 
-            click.echo(f"Chunk {i + 1} translated")
+            logger.info(f"Chunk {i + 1} translated")
 
+    logger.info(f"Translated {file.source_path} to {language}")
     return translated_text
