@@ -22,6 +22,7 @@ from bragir.time import update_timestamps
 from bragir.transcription import transcribe_file
 from bragir.translation import translate_srt
 
+
 @click.command(options_metavar="<options>")
 @click.option(
     "--file_path",
@@ -146,14 +147,18 @@ def translate(file: str, api_key: str, language: str, directory: str) -> None:
 
     translate_to_languages: list[Languages] = parse_languages(language)
 
-    logger.info(f"Translating to following language/languages: {' '.join([language.value for language in translate_to_languages])}")
+    logger.info(
+        f"Translating to following language/languages: {' '.join([language.value for language in translate_to_languages])}"
+    )
 
     files: list[File] = []
     if file:
         logger.info(f"Adding file {file} for translation")
 
         for target_language in translate_to_languages:
-            logger.info(f"Adding file {file} with {target_language.value} for translation")
+            logger.info(
+                f"Adding file {file} with {target_language.value} for translation"
+            )
 
             new_file_path = get_new_file_path(file, target_language)
 
@@ -185,7 +190,9 @@ def translate(file: str, api_key: str, language: str, directory: str) -> None:
         if num_of_file_paths == 1:
             logger.info(f"Processing {num_of_file_paths} file in directory {directory}")
         else:
-            logger.info(f"Processing {num_of_file_paths} files in directory {directory}")
+            logger.info(
+                f"Processing {num_of_file_paths} files in directory {directory}"
+            )
 
         files = process_files(directory_file_paths, translate_to_languages)
 
@@ -197,15 +204,9 @@ def translate(file: str, api_key: str, language: str, directory: str) -> None:
         logger.info(f"Processing {num_of_file_paths} files")
 
     for target_file in files:
-        logger.info(f"Translating {target_file.name} to {target_file.language.value}")
-
         translated_content = translate_srt(
             translator, target_file, target_file.language.value
         )
-
-        logger.info(f"Translated {target_file.name} to {target_file.language}")
-
         create_file(target_file, translated_content)
-        
-        logger.info(f"Created file {target_file.target_path}")
+
         click.echo(f"Created file {target_file.target_path}")
