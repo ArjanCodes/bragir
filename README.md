@@ -105,7 +105,7 @@ Load Openai key as an enviroment variable into current session
 export OPENAI_KEY=<VALUE>
 ```
 
-Flag in command:
+Or, api_key flag in command:
 ```
 bragir translate ... --api_key <VALUE>
 ```
@@ -114,31 +114,31 @@ bragir translate ... --api_key <VALUE>
 Translate a single file to one language:
 
 ```
-bragir translate --file_path <FILE_PATH> --language fr 
+bragir translate <FILE_PATH> --language French --api_key <VALUE>
 ```
 
-Translate multiple files to multiple languages:
+Translate one file to multiple languages:
 
 ```
-bragir translate --file_path <FILE_PATH> --file_path <FILE_PATH> --language French --language German 
+bragir translate <FILE_PATH> --language French --language German --api_key <VALUE>
 ```
 
 Translate files in a directory to multiple languages:
 
 ```
-bragir translate --directory <DIRECTORY_PATH> --language French --language German --api_key <OPENAI_KEY> 
+bragir translate <DIRECTORY_PATH> --language French --language German --api_key <VALUE>
 ```
 
 Transcribe file:
 
 ```
-bragir transcribe --file_path <FILE_PATH> --api_key <OPENAI_KEY> 
+bragir transcribe <FILE_PATH> --api_key <VALUE>
 ```
 
 Transcribe files in a directory:
 
 ```
-bragir transcribe --directory <DIRECTORY_PATH> --api_key <OPENAI_KEY> 
+bragir transcribe <DIRECTORY_PATH> --api_key <VALUE>
 ```
 
 # Contributing
