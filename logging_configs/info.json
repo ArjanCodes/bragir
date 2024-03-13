@@ -3,7 +3,7 @@
     "disable_existing_loggers": true,
     "formatters": {
         "simple": {
-            "format": "[%(levelname)s]: %(asctime)s - %(message)s"
+            "format": "\r [%(levelname)s]: %(asctime)s - %(message)s"
         }
     },
     "handlers": {
