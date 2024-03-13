@@ -1,6 +1,5 @@
-import logging
-import logging.config
 import json
+import logging.config
 from pathlib import Path
 from abc import ABC, abstractmethod
 
@@ -25,10 +24,3 @@ class DebugLoggerStrategy(LoggerStrategy):
         with open(config_file_path) as f:
             logging_config = json.load(f)
         logging.config.dictConfig(config=logging_config)
-
-
-def setup_logging(strategy: LoggerStrategy):
-    strategy.setup_logging()
-
-
-logger = logging.getLogger("root")

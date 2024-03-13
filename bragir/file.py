@@ -6,7 +6,8 @@ from bragir.files.file import File
 from bragir.languages import Languages
 from bragir.audio.chunking import chunk_audio
 from bragir.srt.srt_part import SRTPart
-from bragir.logger import logger
+from bragir.tracing.logger import logger
+
 
 def calculate_duration_ms(file_size_mb: int, bitrate_kbps: int) -> float:
     file_size_bits = file_size_mb * 8 * 1024 * 1024  # Convert MB to bits
@@ -30,6 +31,7 @@ def read_file(file_path: str):
 def create_file(file: File, content: str):
     with open(file.target_path, "a+", encoding="utf-8") as fileIO:
         fileIO.write(content)
+
 
 def get_new_file_path(file: str, target_language: Languages) -> str:
     base_path, file_name = os.path.split(file)
