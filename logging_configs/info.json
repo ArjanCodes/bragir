@@ -1,6 +1,6 @@
 {
     "version": 1,
-    "disable_existing_loggers": false,
+    "disable_existing_loggers": true,
     "formatters": {
         "simple": {
             "format": "[%(levelname)s]: %(asctime)s - %(message)s"
@@ -17,7 +17,9 @@
     "loggers": {
         "root": {
             "level": "INFO",
-            "handlers": ["console"]
+            "handlers": [
+                "console"
+            ]
         }
     }
 }
