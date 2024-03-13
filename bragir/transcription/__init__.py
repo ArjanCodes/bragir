@@ -1,6 +1,6 @@
 from anyio import Path
 from openai import OpenAI
-from bragir.logger import logger
+from bragir.tracing.logger import logger
 from bragir.file import calculate_file_size, process_file, remove_files
 
 from bragir.timer import timing_decorator

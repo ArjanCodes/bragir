@@ -1,7 +1,7 @@
 from datetime import timedelta
 import re
 from typing import Tuple
-from bragir.logger import logger
+from bragir.tracing.logger import logger
 
 from bragir.srt.srt_part import SRTPart
 

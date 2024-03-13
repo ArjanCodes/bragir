@@ -1,11 +1,7 @@
 import os
 import click
-
-from typing import Tuple
 from bragir.directory import get_files_in_directory
-from bragir.logger import logger
 from bragir.client import initiate_client
-
 from bragir.file import (
     chunk_content,
     chunk_content_into_srt_parts,
@@ -15,6 +11,8 @@ from bragir.file import (
 from bragir.files.file import File
 from bragir.files.operations import create_file
 from bragir.languages import Languages, parse_languages
+from bragir.spinner import spinner
+from bragir.tracing.logger import logger
 from bragir.messages import PROMPT_HELP
 from bragir.path import get_target_path
 from bragir.srt.srt_part import SRTPart
@@ -41,6 +39,7 @@ from bragir.translation import translate_srt
     envvar="OPENAI_API_KEY",
     help=PROMPT_HELP["api_key"],
 )
+@spinner("transcribe")
 def transcribe(path: str, output: str, api_key: str) -> None:
     """
     The transcribe command generates an SRT file based on an .mp4 or .mp3 file.
@@ -71,7 +70,7 @@ def transcribe(path: str, output: str, api_key: str) -> None:
     for file_path in file_paths:
         transcripts: list[str] = transcribe_file(transcriber, file_path)
 
-        videos_srts: list[Tuple[int, list[SRTPart]]] = [
+        videos_srts: list[tuple[int, list[SRTPart]]] = [
             (order, chunk_content_into_srt_parts(transcript))
             for order, transcript in enumerate(transcripts)
         ]
@@ -111,6 +110,7 @@ def transcribe(path: str, output: str, api_key: str) -> None:
     multiple=True,
     help=PROMPT_HELP["language"],
 )
+@spinner("translate")
 def translate(path: str, api_key: str, language: str) -> None:
     """
     The translate command, translates either a single SRT file or files or directory of SRT files into the wanted language.

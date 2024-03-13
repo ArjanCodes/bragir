@@ -2,7 +2,7 @@ from openai import OpenAI
 
 from bragir.files.file import File
 from bragir.list import split_list_at_breakpoints
-from bragir.logger import logger
+from bragir.tracing.logger import logger
 from bragir.timer import timing_decorator
 
 
@@ -29,7 +29,6 @@ def translate_srt(translator: OpenAI, file: File, language: str) -> str:
 
     if len(file.breakpoints) == 0:
         translated_text += translate_content(translator, file.contents, language)
-        
 
     if len(file.breakpoints) > 0:
         chunks = split_list_at_breakpoints(file.SRTParts, breakpoints=file.breakpoints)

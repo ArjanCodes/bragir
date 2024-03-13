@@ -1,5 +1,5 @@
 import os
-from bragir.logger import logger
+from bragir.tracing.logger import logger
 
 from bragir.constants import BLACKLISTED_FILES
 
