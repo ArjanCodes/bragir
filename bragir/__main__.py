@@ -1,5 +1,6 @@
 import click
 
+from bragir import config
 from bragir.tracing.logger import setup_logging
 from bragir.tracing.stratergies import DebugLoggerStrategy, InfoLoggerStrategy
 
@@ -12,7 +13,11 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 @click.group(context_settings=CONTEXT_SETTINGS)
 @click.version_option()
 @click.option(
-    "logging_level", "--logging_level", "-ll", default="INFO", help="Set the log level"
+    "logging_level",
+    "--logging_level",
+    "-ll",
+    type=click.Choice(["info", "debug"], case_sensitive=False),
+    help="Set the log level",
 )
 def cli(logging_level: str):
     """
@@ -22,12 +27,14 @@ def cli(logging_level: str):
     as an enviroment variable in the current session
     """
 
+    if not logging_level:
+        logging_level = str(config["logging"]["logging_level"])
+
+    logging_level = logging_level.upper()
     if logging_level == "INFO":
         setup_logging(InfoLoggerStrategy())
     elif logging_level == "DEBUG":
         setup_logging(DebugLoggerStrategy())
-    else:
-        click.echo("No logging will happen")
 
 
 cli.add_command(commands.transcribe)

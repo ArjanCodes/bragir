@@ -1,0 +1,9 @@
+# DON'T CHANGE THE STRUCTURE OF THIS FILE
+[audio]
+min_silence_len=1000
+silence_threshold=-16 # dB (-40)
+keep_silence=True
+
+
+[logging]
+logging_level='info'
