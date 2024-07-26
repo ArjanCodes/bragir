@@ -1,16 +1,22 @@
-from enum import Enum
+from enum import StrEnum, auto
 from typing import Any, Type
 
 
-class Languages(Enum):
-    PORTUGUESE = "Portuguese"
-    SPANISH = "Spanish"
-    FRENCH = "French"
-    GERMAN = "German"
-    ITALIAN = "Italian"
+class Languages(StrEnum):
+    PORTUGUESE = auto()
+    SPANISH = auto()
+    FRENCH = auto()
+    POLISH = auto()
+    GERMAN = auto()
+    ITALIAN = auto()
+    DUTCH = auto()
+    SWEDISH = auto()
+    DANISH = auto()
+    NORWEGIAN = auto()
+    FINNISH = auto()
 
 
-def to_output(enum_class: Type[Enum]) -> str:
+def to_output(enum_class: Type[StrEnum]) -> str:
     formatted_enum = " ".join([f"{enum.value}" for enum in enum_class])
     return formatted_enum
 
