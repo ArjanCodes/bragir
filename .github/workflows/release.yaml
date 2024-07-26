@@ -1,0 +1,48 @@
+name: release
+
+on:
+  push:
+    branches:
+      - main
+    # tags:
+    #   - 'release-*'
+
+jobs:
+  setup_and_build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Poetry
+        run: | 
+          curl -sSL https://install.python-poetry.org | python -
+      - name: Install dependencies
+        run: poetry install --sync --no-interaction
+      - name: Build source and wheel distribution
+        run: |
+          poetry build
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: dist
+          path: dist/
+  pypi-publish:
+    name: Upload release to PyPI
+    needs: setup_and_build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+    permissions:
+      id-token: write
+    steps:
+    - name: Download artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: dist
+        path: dist/
+
+    - name: Publish distribution to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        user: __token__
+        password: ${{ secrets.PYPI_API_TOKEN }}
+  
