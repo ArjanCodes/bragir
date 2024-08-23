@@ -83,6 +83,27 @@ jobs:
           name: dist
           path: dist/
 
+  update_changelog:
+    needs: [setup_and_build, extract_tag]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Update CHANGELOG
+        id: changelog
+        uses: requarks/changelog-action@v1
+        with:
+          token: ${{ github.token }}
+          tag: ${{ needs.extract_tag.outputs.tag }}
+
+      - name: Commit CHANGELOG.md
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          branch: main
+          commit_message: "docs: update CHANGELOG.md for ${{ needs.extract_tag.outputs.tag }} [skip ci]"
+          file_pattern: CHANGELOG.md
+
   pypi_publish:
     name: Upload release to PyPI
     needs: [setup_and_build, extract_tag]
@@ -119,7 +140,7 @@ jobs:
   #       id: create_release
   #       uses: actions/create-release@v1
   #       env:
-  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #         GITHUB_TOKEN: ${{ github.token }}
   #       with:
   #         tag_name: ${{ needs.extract_tag.outputs.tag }}
   #         release_name: ${{ needs.extract_tag.outputs.tag }}
