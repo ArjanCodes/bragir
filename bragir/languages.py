@@ -14,6 +14,7 @@ class Languages(StrEnum):
     DANISH = auto()
     NORWEGIAN = auto()
     FINNISH = auto()
+    TURKISH = auto()
 
 
 def to_output(enum_class: Type[StrEnum]) -> str:
