@@ -1,0 +1,76 @@
+name: Bragir Issue Template
+description: Use this template to report Bragir-related issues
+body:
+  - type: dropdown
+    id: issue-type
+    attributes:
+      label: Issue type
+      description: What type of issue would you like to report?
+      multiple: false
+      options:
+        - Bug/Unexpected behavior
+        - Build/Install
+        - Performance
+        - Feature Request
+        - Others
+    validations:
+      required: true
+
+  - type: input
+    id: bragirversion
+    attributes:
+      label: Bragir version
+    validations:
+      required: true
+
+  - type: dropdown
+    id: installation
+    attributes:
+      label: Bragir installed from
+      options:
+        - source
+        - pip
+        - binary
+
+  - type: input
+    id: OS
+    attributes:
+      label: OS platform and distribution
+      placeholder: e.g., Linux Ubuntu 16.04
+
+  - type: input
+    id: Python
+    attributes:
+      label: Python version
+      placeholder: e.g., 3.9
+
+  - type: textarea
+    id: code-to-reproduce
+    attributes:
+      label: Command
+      description: Copy and paste the command that you ran
+      value: ""
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: current-behavior
+    attributes:
+      label: Current behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output
+      description: Please copy and paste any relevant log output. This will be automatically formatted into code, so no need for backticks.
+      render: shell
