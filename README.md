@@ -150,16 +150,18 @@ If you want to contribute to this project, please use the following steps:
 
 # Commit Message Structure
 
+This projects aims to follow the [Conventional Commits](https*://www.conventionalcommits.org/en/v1.0.0/#summary) guidelines.
+
 When writing commit messages, use one of the following categories to clearly describe the purpose of your commit:
 
 - **feat** / **feature**: ✨  Introducing new features
 - **fix** / **bugfix**: 🐛  Addressing bug fixes
 - **perf**: 🚀  Enhancing performance
-- **refactor**: 🔄  Refactoring code
-- **test** / **tests**: ✅  Adding or updating tests
-- **build** / **ci**: 🛠️  Build system or CI/CD updates
-- **doc** / **docs**: 📚  Documentation changes
-- **style**: 🎨  Code style or formatting changes
+- **refactor**: 🔄  Refactoring code - **Not displayed in CHANGELOG**
+- **test** / **tests**: ✅  Adding or updating tests - **Not displayed in CHANGELOG**
+- **build** / **ci**: 🛠️  Build system or CI/CD updates - **Not displayed in CHANGELOG**
+- **doc** / **docs**: 📚  Documentation changes - **Not displayed in CHANGELOG**
+- **style**: 🎨  Code style or formatting changes - **Not displayed in CHANGELOG**
 - **chore**: 🔧  Miscellaneous chores
 - **other**: 🌟  Other significant changes
 
