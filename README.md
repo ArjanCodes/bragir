@@ -30,6 +30,8 @@ The bragir CLI is a command-line application built using Click. Its primary purp
 - [Usage](#usage)
     - [Examples](#examples)
 - [Contributing](#contributing)
+- [Commit Message Structure](#commit-message-structure)
+  - [Example Commit Messages](#example-commit-messages)
 - [License](#license)
 
 ## Installation
@@ -145,6 +147,26 @@ If you want to contribute to this project, please use the following steps:
 3. Commit your changes (git commit -m 'Add some feature').
 4. Push to the branch (git push origin feature/awesome-feature).
 5. Open a pull request.
+
+# Commit Message Structure
+
+When writing commit messages, use one of the following categories to clearly describe the purpose of your commit:
+
+- **feat** / **feature**: ✨  Introducing new features
+- **fix** / **bugfix**: 🐛  Addressing bug fixes
+- **perf**: 🚀  Enhancing performance
+- **refactor**: 🔄  Refactoring code
+- **test** / **tests**: ✅  Adding or updating tests
+- **build** / **ci**: 🛠️  Build system or CI/CD updates
+- **doc** / **docs**: 📚  Documentation changes
+- **style**: 🎨  Code style or formatting changes
+- **chore**: 🔧  Miscellaneous chores
+- **other**: 🌟  Other significant changes
+
+## Example Commit Messages
+
+- `feat: Add cool new feature`
+- `fix: Resolve unexpected behavior with translation`
 
 # License
 This project is licensed under the MIT License.
