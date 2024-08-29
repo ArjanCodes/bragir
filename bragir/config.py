@@ -4,11 +4,14 @@ import os
 from pathlib import Path
 
 import click
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, SecretStr, ValidationError
 
 from bragir.tracing.logger import logger
 
-CONFIG_DIR = Path.home() / ".bragir" / "cli"
+HOMEBREW_PREFIX = "/opt/homebrew"
+
+# Set the configuration directory and file path
+CONFIG_DIR = Path(HOMEBREW_PREFIX) / "etc" / "bragir"
 CONFIG_FILE_PATH = CONFIG_DIR / "config.ini"
 
 BASE_CONFIG = """# DONT CHANGE STRUCTURE OF THIS FILE
@@ -44,7 +47,7 @@ class LoggingConfig(BaseModel):
 
 
 class ClientConfig(BaseModel):
-    openai_api_key: str
+    openai_api_key: SecretStr
 
 
 class Config(BaseModel):
@@ -54,11 +57,8 @@ class Config(BaseModel):
 
 
 def create_config_file(target_path: Path):
-    user_home_directory = os.path.expanduser("~")
-
-    full_file_path = os.path.join(user_home_directory, ".bragir/cli/config.ini")
-
-    os.makedirs(os.path.dirname(full_file_path), exist_ok=True)
+    # Ensure the directory exists
+    os.makedirs(CONFIG_DIR, exist_ok=True)
 
     logger.info(f"Creating config file at: {target_path}")
     with open(target_path, "w") as file:
@@ -90,6 +90,6 @@ def read_config(
 
 
 try:
-    config = read_config(Path(CONFIG_FILE_PATH).expanduser())
+    config = read_config(Path(CONFIG_FILE_PATH))
 except ValidationError as e:
     click.secho(f"Configuration validation error: {e}", fg="red")
