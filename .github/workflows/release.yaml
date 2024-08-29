@@ -134,33 +134,33 @@ jobs:
           user: __token__
           password: ${{ secrets.PYPI_API_TOKEN }}
 
-  # github_release:
-  #   name: Create GitHub Release
-  #   needs: [setup_and_build, extract_tag]
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Download artifacts
-  #       uses: actions/download-artifact@v3
-  #       with:
-  #         name: dist
-  #         path: dist/
+  github_release:
+    name: Create GitHub Release
+    needs: [setup_and_build, extract_tag]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: dist
+          path: dist/
 
-  #     - name: Create GitHub Release
-  #       id: create_release
-  #       uses: actions/create-release@v1
-  #       env:
-  #         GITHUB_TOKEN: ${{ github.token }}
-  #       with:
-  #         tag_name: ${{ needs.extract_tag.outputs.tag }}
-  #         release_name: ${{ needs.extract_tag.outputs.tag }}
-  #         body: "Release of version ${{ needs.extract_tag.outputs.tag }}"
-  #         draft: false
-  #         prerelease: false
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use secrets for the token
+        with:
+          tag_name: ${{ needs.extract_tag.outputs.tag }}
+          release_name: ${{ needs.extract_tag.outputs.tag }}
+          body: "Release of version ${{ needs.extract_tag.outputs.tag }}"
+          draft: false
+          prerelease: false
 
-  #     - name: Upload release assets
-  #       uses: actions/upload-release-asset@v1
-  #       with:
-  #         upload_url: ${{ steps.create_release.outputs.upload_url }}
-  #         asset_path: dist/*
-  #         asset_name: $(basename $asset_path)
-  #         asset_content_type: application/octet-stream
+      - name: Upload release assets
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: dist/*
+          asset_name: dist  # Correcting the use of asset_name
+          asset_content_type: application/octet-stream
