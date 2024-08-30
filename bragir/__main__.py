@@ -31,7 +31,7 @@ def cli(context: click.Context, logging_level: str):
 
     context.ensure_object(dict)
 
-    api_key: str = config.client.openai_api_key
+    api_key: str = config.client.openai_api_key.get_secret_value()
 
     client = initiate_client(api_key=api_key)
 
