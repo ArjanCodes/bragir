@@ -1,0 +1,43 @@
+name: Bump Homebrew formula
+
+on:
+  release:
+    types: [released]
+
+jobs:
+  homebrew:
+    name: Bump Homebrew formula
+    # Skip this job in case of git pushes to prerelease tags
+    if: ${{ github.event_name != 'push' || !contains(github.ref, '-') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v2
+      - name: Extract tag
+        id: versioning
+        run: |
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            TAG_NAME=${GITHUB_REF#refs/tags/}
+            VERSION=${TAG_NAME#v}
+            echo "::set-output name=version::$version"
+            echo "::set-output name=tag-name::$TAG_NAME"
+            echo "Tag name is $TAG_NAME"
+          else
+            echo "No tag found"
+            exit 1
+          fi
+
+      - uses: mislav/bump-homebrew-formula-action@v3
+        with:
+          formula-name: bragir
+          formula-path: Formula/bragir.rb
+          homebrew-tap: ArjanCodes/homebrew-core
+          base-branch: master
+          download-url: https://github.com/ArjanCodes/bragir/releases/download/${{ steps.versioning.outputs.tag-name }}/bragir-${{steps.versioning.outputs.version}}.tar.gz
+          commit-message: |
+            bragir ${{steps.versioning.outputs.version}}
+
+            Created by https://github.com/mislav/bump-homebrew-formula-action
+        env:
+          COMMITTER_TOKEN: ${{ secrets.COMMITTER_TOKEN }}
