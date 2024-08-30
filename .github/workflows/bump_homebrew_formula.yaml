@@ -4,6 +4,13 @@ on:
   release:
     types: [released]
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to bump"
+        required: false
+      tag-name:
+        description: "Tag name (if available)"
+        required: false
 
 jobs:
   homebrew:
