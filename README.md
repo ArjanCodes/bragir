@@ -16,6 +16,11 @@ The bragir CLI is a command-line application built using Click. Its primary purp
 
 ## Table of Contents
 
+a little change
+
+another fix 
+
+little bug
 - [Bragir](#bragir)
   - [Description](#description)
   - [Features](#features)
