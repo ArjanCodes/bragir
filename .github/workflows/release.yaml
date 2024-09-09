@@ -4,60 +4,71 @@ on:
   push:
     tags:
       - "*-release"
+      - "*-beta"
+      - "*-test"
 
 jobs:
-  extract_tag:
+  details:
     runs-on: ubuntu-latest
     outputs:
-      tag: ${{ steps.versioning.outputs.tag }}
+      package_name: ${{ steps.package_information.outputs.package_name }}
+      new_version: ${{ steps.release.outputs.new_version }}
+      suffix: ${{ steps.release.outputs.suffix }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
     steps:
       - uses: actions/checkout@v2
-      - name: Extract tag
-        id: versioning
+      - name: Extract tag and Details
+        id: release
         run: |
           if [ "${{ github.ref_type }}" = "tag" ]; then
             TAG_NAME=${GITHUB_REF#refs/tags/}
-            echo "::set-output name=tag::$TAG_NAME"
+            NEW_VERSION=$(echo $TAG_NAME | awk -F'-' '{print $1}')
+            SUFFIX=$(echo $TAG_NAME | awk -F'-' '{print $2}')
+            echo "new_version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
+            echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
+            echo "tag_name=$TAG_NAME" >> "$GITHUB_OUTPUT"
+            echo "Version is $NEW_VERSION"
+            echo "Suffix is $SUFFIX"
             echo "Tag name is $TAG_NAME"
           else
             echo "No tag found"
             exit 1
           fi
 
-  setup_and_build:
-    needs: extract_tag
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
       - name: Install Poetry
         run: |
           curl -sSL https://install.python-poetry.org | python -
 
-      - name: Get Information About Package
-        id: details
+      - name: Get Name of Package
+        id: package_information
         run: |
           package_information=$(poetry version)
-          name=$(echo $package_information | awk '{print $1}')
-          new_version=$(echo ${{ needs.extract_tag.outputs.tag }} | awk -F'-' '{print $1}' | awk -F'v' '{print $2}')
-          echo "Package name: $name"
-          echo "New version: $new_version"
-          echo "::set-output name=name::$name"
-          echo "::set-output name=new_version::$new_version"
+          PACKAGE_NAME=$(echo $package_information | awk '{print $1}')
+          echo "Package name: $PACKAGE_NAME"
+          echo "package_name=$PACKAGE_NAME" >> "$GITHUB_OUTPUT"
 
+  setup_and_build:
+    needs: details
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
       - name: Fetch information from PyPI
-        id: fetch-info
+        id: fetch_pypi_info
         run: |
-          PACKAGE_NAME=${{ steps.details.outputs.name }}
-          response=$(curl -s https://pypi.org/pypi/$PACKAGE_NAME/json)
-          latest_version=$(echo $response | grep -oP '"releases":\{"\K[^"]+' | sort -rV | head -n 1)
-          echo "Latest version on PyPI: $latest_version"
-          echo "::set-output name=latest_version::$latest_version"
+          PACKAGE_NAME=${{ needs.details.outputs.package_name}}
+          response=$(curl -s https://pypi.org/pypi/$PACKAGE_NAME/json || echo "{}")
+          latest_previous_version=$(echo $response | grep -oP '"releases":\{"\K[^"]+' | sort -rV | head -n 1)
+          if [ -z "$latest_previous_version" ]; then
+            echo "Package not found on PyPI."
+            latest_previous_version="0.0.0"
+          fi
+          echo "Latest version on PyPI: $latest_previous_version"
+          echo "latest_previous_version=$latest_previous_version" >> $GITHUB_ENV
 
       - name: Compare versions and exit if not newer
         run: |
-          NEW_VERSION=${{ steps.details.outputs.new_version }}
-          LATEST_VERSION=${{ steps.fetch-info.outputs.latest_version }}
-
+          NEW_VERSION=${{ needs.details.outputs.new_version }}
+          LATEST_VERSION=$latest_previous_version
           if [ "$(printf '%s\n' "$LATEST_VERSION" "$NEW_VERSION" | sort -rV | head -n 1)" != "$NEW_VERSION" ] || [ "$NEW_VERSION" == "$LATEST_VERSION" ]; then
             echo "The new version $NEW_VERSION is not greater than the latest version $LATEST_VERSION on PyPI."
             exit 1
@@ -65,10 +76,23 @@ jobs:
             echo "The new version $NEW_VERSION is greater than the latest version $LATEST_VERSION on PyPI."
           fi
 
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python -
+
       - name: Set project version with Poetry
         run: |
-          NEW_VERSION=${{ steps.details.outputs.new_version }}
-          poetry version $NEW_VERSION
+          NEW_VERSION=${{ needs.details.outputs.new_version }}
+          SUFFIX=${{ needs.details.outputs.suffix }}
+
+          # Handle versioning based on suffix
+          if [[ "$SUFFIX" == "release" ]]; then
+            poetry version $NEW_VERSION
+          elif [[ "$SUFFIX" == "beta" ]]; then
+            poetry version "${NEW_VERSION}b1"
+          else
+            poetry version "${NEW_VERSION}.dev1"
+          fi
 
       - name: Install dependencies
         run: poetry install --sync --no-interaction
@@ -83,84 +107,91 @@ jobs:
           name: dist
           path: dist/
 
+  # pypi_publish:
+  #   name: Upload release to PyPI
+  #   needs: [setup_and_build, details]
+  #   runs-on: ubuntu-latest
+  #   environment:
+  #     name: release
+  #   permissions:
+  #     id-token: write
+  #   steps:
+  #     - name: Download artifacts
+  #       uses: actions/download-artifact@v3
+  #       with:
+  #         name: dist
+  #         path: dist/
+
+  #     - name: Publish distribution to PyPI
+  #       uses: pypa/gh-action-pypi-publish@release/v1
+
+  # github_release:
+  #   name: Create GitHub Release
+  #   needs: [setup_and_build, details]
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     contents: write
+  #   steps:
+  #     - name: Download artifacts
+  #       uses: actions/download-artifact@v3
+  #       with:
+  #         name: dist
+  #         path: ./dist/
+
+  #     - name: List downloaded files for debugging
+  #       run: ls -la ./dist # List the contents of the 'dist' directory to confirm files are there
+
+  #     - name: Create GitHub Release
+  #       id: create_release
+  #       uses: actions/create-release@v1
+  #       env:
+  #         GITHUB_TOKEN: ${{ github.token }}
+  #       with:
+  #         tag_name: ${{ needs.details.outputs.tag_name }}
+  #         release_name: ${{ needs.details.outputs.tag_name }}
+  #         body: "Release of version ${{ needs.details.outputs.new_version }}"
+  #         draft: false
+  #         prerelease: ${{ needs.details.outputs.suffix != 'release' }} # Mark as prerelease for non-release
+
   update_changelog:
-    needs: [setup_and_build, extract_tag]
+    # needs: [details, github_release, pypi_publish]
+    needs: [details]
+    environment: release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Get previous tag
+        id: previousTag
+        run: |
+          name=$(git --no-pager tag --sort=creatordate --merged ${{ needs.details.outputs.tag_name }} | tail -2 | head -1)
+          echo "previousTag: $name"
+          echo "previousTag=$name" >> $GITHUB_ENV
 
       - name: Update CHANGELOG
-        id: changelog
         uses: requarks/changelog-action@v1
         with:
           token: ${{ github.token }}
-          tag: ${{ needs.extract_tag.outputs.tag }}
+          fromTag: ${{ github.ref_name }}
+          toTag: ${{ env.previousTag }}
+          writeToFile: false
           excludeTypes: doc, style, test, refactor, ci, other
 
       - name: Commit CHANGELOG.md
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
-          branch: update-changelog-${{ needs.extract_tag.outputs.tag }}
-          commit_message: "docs: update CHANGELOG.md for ${{ needs.extract_tag.outputs.tag }} [skip ci]"
+          branch: update-changelog-${{ needs.details.outputs.tag_name }}
+          commit_message: "docs: update CHANGELOG.md for ${{ needs.details.outputs.tag_name }}[skip ci]"
           file_pattern: CHANGELOG.md
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v4
         with:
-          branch: update-changelog-${{ needs.extract_tag.outputs.tag }}
-          title: "docs: update CHANGELOG.md for ${{ needs.extract_tag.outputs.tag }}"
-          body: "This PR updates the CHANGELOG.md for the release ${{ needs.extract_tag.outputs.tag }}."
+          branch: update-changelog-${{ needs.details.outputs.tag_name }}
+          title: "docs: update CHANGELOG.md for ${{ needs.details.outputs.tag_name }}"
+          body: "This PR updates the CHANGELOG.md for the release ${{ needs.details.outputs.tag_name }}"
           labels: "documentation"
-
-  pypi_publish:
-    name: Upload release to PyPI
-    needs: [setup_and_build, extract_tag]
-    runs-on: ubuntu-latest
-    environment:
-      name: pypi
-    permissions:
-      id-token: write
-    steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v3
-        with:
-          name: dist
-          path: dist/
-
-      - name: Publish distribution to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          user: __token__
-          password: ${{ secrets.PYPI_API_TOKEN }}
-
-  github_release:
-    name: Create GitHub Release
-    needs: [setup_and_build, extract_tag]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v3
-        with:
-          name: dist
-          path: dist/
-
-      - name: Create GitHub Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use secrets for the token
-        with:
-          tag_name: ${{ needs.extract_tag.outputs.tag }}
-          release_name: ${{ needs.extract_tag.outputs.tag }}
-          body: "Release of version ${{ needs.extract_tag.outputs.tag }}"
-          draft: false
-          prerelease: false
-
-      - name: Upload release assets
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: dist/*
-          asset_name: dist  # Correcting the use of asset_name
-          asset_content_type: application/octet-stream
+          base: main
