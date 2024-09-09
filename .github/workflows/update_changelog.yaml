@@ -1,0 +1,47 @@
+name: Update Changelog Branch
+
+on:
+  release:
+    types: [published] # Trigger when a release is published
+
+jobs:
+  update_changelog:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          ref: main
+
+      - name: Create Temporary Branch
+        run: |
+          git checkout -b update-changelog-${{ github.event.release.name }}
+          echo "BRANCH_NAME=update-changelog-${{ github.event.release.name }}" >> $GITHUB_ENV
+
+      - name: Update Changelog
+        uses: stefanzweifel/changelog-updater-action@v1
+        with:
+          release-notes: ${{ github.event.release.body }} # Add release notes to changelog
+          latest-version: ${{ github.event.release.name }} # Add latest version to changelog
+
+      - name: Commit changes
+        run: |
+          git config --local user.email "abdreos@arjancodes.com"
+          git config --local user.name "GitHub Actions"
+          git add CHANGELOG.md
+          git commit -m "Update Changelog for ${{ github.event.release.name }}"
+
+      - name: Push changes to temporary branch
+        run: |
+          git push origin HEAD:$BRANCH_NAME
+      # Step 3: Create the pull request using 'gh' command
+      - name: Create Pull Request
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr create \
+            --base main \
+            --head $BRANCH_NAME \
+            --title "Automated Pull Request from $BRANCH_NAME to main" \
+            --body "This is an automated pull request created via GitHub Actions."

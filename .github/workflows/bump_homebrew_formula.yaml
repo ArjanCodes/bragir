@@ -12,6 +12,11 @@ on:
         description: "Tag name (if available)"
         required: false
 
+env:
+  OWNER: ArjanCodes
+  REPO: homebrew-core
+  PACKAGE_NAME: bragir
+
 jobs:
   homebrew:
     name: Bump Homebrew formula
@@ -21,31 +26,55 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout Source Repository
+        uses: actions/checkout@v2
+
+      - name: Set up Git
+        run: |
+          git config --global user.name "${{env.PACKAGE_NAME}} GitHub Actions Bot"
+          git config --global user.email "${{env.PACKAGE_NAME}}@bot.com"
+
+      - name: Checkout Target Repo
+        uses: actions/checkout@v3
+        with:
+          repository: ${{env.OWNER}}/${{env.REPO}} # Target repository
+          token: ${{ secrets.COMMITTER_TOKEN }} # Using the secret PAT
+
       - name: Extract tag
         id: versioning
         run: |
           if [ "${{ github.ref_type }}" = "tag" ]; then
-            TAG_NAME=${GITHUB_REF#refs/tags/}
-            VERSION=${TAG_NAME#v}
-            echo "::set-output name=version::$version"
-            echo "::set-output name=tag-name::$TAG_NAME"
-            echo "Tag name is $TAG_NAME"
+              TAG_NAME=${GITHUB_REF#refs/tags/}
+              VERSION=${TAG_NAME#v}
+              echo "::set-output name=version::$VERSION"
+              echo "::set-output name=tag-name::$TAG_NAME"
+              echo "Tag name is $TAG_NAME"
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+              # Assuming input variables are passed as inputs.version and inputs.tag_name
+              VERSION="${{ inputs.version }}"
+              TAG_NAME="${{ inputs.tag-name }}"
+
+              if [ -z "$VERSION" ] || [ -z "$TAG_NAME" ]; then
+                  echo "Version or tag name input is missing"
+                  exit 1
+              fi
+
+              echo "::set-output name=version::$VERSION"
+              echo "::set-output name=tag-name::$TAG_NAME"
+              echo "Using manual inputs: Version is $VERSION, Tag name is $TAG_NAME"
           else
-            echo "No tag found"
-            exit 1
+              echo "No tag found and not a manual trigger"
+              exit 1
           fi
 
-      - uses: mislav/bump-homebrew-formula-action@v3
+      - name: Update Homebrew formula
+        uses: dawidd6/action-homebrew-bump-formula@v3
         with:
-          formula-name: bragir
-          formula-path: Formula/bragir.rb
-          homebrew-tap: ArjanCodes/homebrew-core
-          base-branch: master
-          download-url: https://github.com/ArjanCodes/bragir/releases/download/${{ steps.versioning.outputs.tag-name }}/bragir-${{steps.versioning.outputs.version}}.tar.gz
-          commit-message: |
-            bragir ${{steps.versioning.outputs.version}}
-
-            Created by https://github.com/mislav/bump-homebrew-formula-action
-        env:
-          COMMITTER_TOKEN: ${{ secrets.COMMITTER_TOKEN }}
+          token: ${{secrets.COMMITTER_TOKEN}}
+          user_name: ${{env.PACKAGE_NAME}}_bot
+          user_email: ${{env.PACKAGE_NAME}}@bot.com
+          tap: ${{env.OWNER}}/${{env.REPO}}
+          formula: ${{env.PACKAGE_NAME}}
+          tag: ${{steps.versioning.outputs.tag-name}}
+          force: false # true
+          livecheck: true
