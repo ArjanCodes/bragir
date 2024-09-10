@@ -107,55 +107,54 @@ jobs:
           name: dist
           path: dist/
 
-  # pypi_publish:
-  #   name: Upload release to PyPI
-  #   needs: [setup_and_build, details]
-  #   runs-on: ubuntu-latest
-  #   environment:
-  #     name: release
-  #   permissions:
-  #     id-token: write
-  #   steps:
-  #     - name: Download artifacts
-  #       uses: actions/download-artifact@v3
-  #       with:
-  #         name: dist
-  #         path: dist/
+  pypi_publish:
+    name: Upload release to PyPI
+    needs: [setup_and_build, details]
+    runs-on: ubuntu-latest
+    environment:
+      name: release
+    permissions:
+      id-token: write
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: dist
+          path: dist/
 
-  #     - name: Publish distribution to PyPI
-  #       uses: pypa/gh-action-pypi-publish@release/v1
+      - name: Publish distribution to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
 
-  # github_release:
-  #   name: Create GitHub Release
-  #   needs: [setup_and_build, details]
-  #   runs-on: ubuntu-latest
-  #   permissions:
-  #     contents: write
-  #   steps:
-  #     - name: Download artifacts
-  #       uses: actions/download-artifact@v3
-  #       with:
-  #         name: dist
-  #         path: ./dist/
+  github_release:
+    name: Create GitHub Release
+    needs: [setup_and_build, details]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: dist
+          path: ./dist/
 
-  #     - name: List downloaded files for debugging
-  #       run: ls -la ./dist # List the contents of the 'dist' directory to confirm files are there
+      - name: List downloaded files for debugging
+        run: ls -la ./dist # List the contents of the 'dist' directory to confirm files are there
 
-  #     - name: Create GitHub Release
-  #       id: create_release
-  #       uses: actions/create-release@v1
-  #       env:
-  #         GITHUB_TOKEN: ${{ github.token }}
-  #       with:
-  #         tag_name: ${{ needs.details.outputs.tag_name }}
-  #         release_name: ${{ needs.details.outputs.tag_name }}
-  #         body: "Release of version ${{ needs.details.outputs.new_version }}"
-  #         draft: false
-  #         prerelease: ${{ needs.details.outputs.suffix != 'release' }} # Mark as prerelease for non-release
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          tag_name: ${{ needs.details.outputs.tag_name }}
+          release_name: ${{ needs.details.outputs.tag_name }}
+          body: "Release of version ${{ needs.details.outputs.new_version }}"
+          draft: false
+          prerelease: ${{ needs.details.outputs.suffix != 'release' }} # Mark as prerelease for non-release
 
   update_changelog:
-    # needs: [details, github_release, pypi_publish]
-    needs: [details]
+    needs: [details, github_release, pypi_publish]
     environment: release
     runs-on: ubuntu-latest
     steps:
