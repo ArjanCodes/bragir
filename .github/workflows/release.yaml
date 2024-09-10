@@ -153,8 +153,49 @@ jobs:
           draft: false
           prerelease: ${{ needs.details.outputs.suffix != 'release' }} # Mark as prerelease for non-release
 
-  update_changelog:
+  bump-version:
     needs: [details, github_release, pypi_publish]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # Fetch full history to avoid issues with tags and branches
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          export PATH="$HOME/.local/bin:$PATH"
+
+      - name: Install dependencies
+        run: poetry install
+
+      - name: Bump version
+        run: |
+          VERSION="${{ needs.details.outputs.new_version }}"
+          poetry version $VERSION
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git checkout -b version-bump-${{ needs.details.outputs.new_version }}
+          git add pyproject.toml
+          git commit -m "Bump version to $VERSION"
+          git push origin version-bump-${{ needs.details.outputs.new_version }}
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v4
+        with:
+          branch: version-bump-${{ needs.details.outputs.new_version }}
+          title: "Bump version to ${{ needs.details.outputs.new_version }}"
+          body: "This PR bumps the version to ${{ needs.details.outputs.new_version }}."
+          labels: "version-bump"
+
+  update_changelog:
+    needs: [details, github_release, pypi_publish, bump-version]
     environment: release
     runs-on: ubuntu-latest
     steps:
