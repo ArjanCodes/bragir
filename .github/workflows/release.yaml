@@ -19,6 +19,7 @@ jobs:
       tag_name: ${{ steps.release.outputs.tag_name }}
     steps:
       - uses: actions/checkout@v2
+
       - name: Extract tag and Details
         id: release
         run: |
@@ -37,9 +38,11 @@ jobs:
             exit 1
           fi
 
-      - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python -
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+          cache: "poetry"
 
       - name: Get Name of Package
         id: package_information
@@ -49,13 +52,11 @@ jobs:
           echo "Package name: $PACKAGE_NAME"
           echo "package_name=$PACKAGE_NAME" >> "$GITHUB_OUTPUT"
 
-  setup_and_build:
+  check_pypi:
     needs: details
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
       - name: Fetch information from PyPI
-        id: fetch_pypi_info
         run: |
           PACKAGE_NAME=${{ needs.details.outputs.package_name}}
           response=$(curl -s https://pypi.org/pypi/$PACKAGE_NAME/json || echo "{}")
@@ -78,23 +79,21 @@ jobs:
             echo "The new version $NEW_VERSION is greater than the latest version $LATEST_VERSION on PyPI."
           fi
 
-      - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python -
+  setup_and_build:
+    needs: [details, check_pypi]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+          cache: "poetry"
 
       - name: Set project version with Poetry
         run: |
-          NEW_VERSION=${{ needs.details.outputs.new_version }}
-          SUFFIX=${{ needs.details.outputs.suffix }}
-
-          # Handle versioning based on suffix
-          if [[ "$SUFFIX" == "release" ]]; then
-            poetry version $NEW_VERSION
-          elif [[ "$SUFFIX" == "beta" ]]; then
-            poetry version "${NEW_VERSION}b1"
-          else
-            poetry version "${NEW_VERSION}.dev1"
-          fi
+          poetry version ${{ needs.details.outputs.new_version }}
 
       - name: Bump version in pyproject.toml
         run: |
@@ -157,9 +156,6 @@ jobs:
           name: dist
           path: ./dist/
 
-      - name: List downloaded files for debugging
-        run: ls -la ./dist # List the contents of the 'dist' directory to confirm files are there
-
       - name: Create GitHub Release
         id: create_release
         uses: actions/create-release@v1
@@ -184,12 +180,8 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.x"
-
-      - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-          export PATH="$HOME/.local/bin:$PATH"
+          python-version: "3.12"
+          cache: "poetry"
 
       - name: Install dependencies
         run: poetry install
