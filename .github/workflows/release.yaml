@@ -94,6 +94,23 @@ jobs:
             poetry version "${NEW_VERSION}.dev1"
           fi
 
+      - name: Bump version in pyproject.toml
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git checkout -b version-bump-${{ needs.details.outputs.new_version }}
+          git add pyproject.toml
+          git commit -m "Bump version to $VERSION"
+          git push origin version-bump-${{ needs.details.outputs.new_version }}
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v4
+        with:
+          branch: version-bump-${{ needs.details.outputs.new_version }}
+          title: "Bump version to ${{ needs.details.outputs.new_version }}"
+          body: "This PR bumps the version to ${{ needs.details.outputs.new_version }}."
+          labels: "version-bump"
+
       - name: Install dependencies
         run: poetry install --sync --no-interaction
 
