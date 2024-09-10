@@ -5,9 +5,11 @@ on:
     tags:
       - "*-release"
       - "*-beta"
-      - "*-test"
 
 jobs:
+  unit-test:
+    uses: arjancodes/bragir/.github/workflows/test.yaml@main
+
   details:
     runs-on: ubuntu-latest
     outputs:
