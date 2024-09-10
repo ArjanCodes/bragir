@@ -1,9 +1,32 @@
+from typing import Any
 from openai import OpenAI
 
 from bragir.files.file import File
-from bragir.list import split_list_at_breakpoints
 from bragir.tracing.logger import logger
 from bragir.timer import timing_decorator
+
+
+def split_by_breakpoints(
+    collection: list[Any], breakpoints: list[int]
+) -> list[list[Any]]:
+    if len(collection) == 0 or len(collection) == 1:
+        return collection
+
+    result: list[Any] = []
+    start_index = 0
+
+    for breakpoint in breakpoints:
+        result.append(collection[start_index:breakpoint])
+        start_index = breakpoint
+
+    # Append the remaining elements after the last breakpoint
+    result.append(collection[start_index:])
+
+    for res in result:
+        if res == []:
+            result.remove(res)
+
+    return result
 
 
 def translate_content(client: OpenAI, text: str, language: str) -> str:
@@ -31,7 +54,7 @@ def translate_srt(translator: OpenAI, file: File, language: str) -> str:
         translated_text += translate_content(translator, file.contents, language)
 
     if len(file.breakpoints) > 0:
-        chunks = split_list_at_breakpoints(file.SRTParts, breakpoints=file.breakpoints)
+        chunks = split_by_breakpoints(file.SRTParts, breakpoints=file.breakpoints)
 
         for i, chunk in enumerate(chunks):
             text = ""
