@@ -12,43 +12,22 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Set up Git user
-        run: |
-          git config user.name "GitHub Action"
-          git config user.email "action@github.com"
-
-      - name: Create or switch to changelog branch
-        run: |
-          git checkout -B changelog-branch # Switch to or create changelog-branch
-
       - name: Update Changelog
         uses: stefanzweifel/changelog-updater-action@v1
         with:
           release-notes: ${{ github.event.release.body }} # Add release notes to changelog
           latest-version: ${{ github.event.release.name }} # Add latest version to changelog
 
-      - name: Add and commit changes to changelog.md
-        uses: EndBug/add-and-commit@v9
-        with:
-          add: "./CHANGELOG.md"
-          author_name: "Your Author Name"
-          author_email: "author@example.com"
-          committer_name: "Committer Name"
-          committer_email: "committer@example.com"
-          default_author: github_actor
-          message: "Update CHANGELOG.md for release ${{ github.event.release.name }}"
-          new_branch: changelog-branch
-
-      - name: Push changes
-        run: |
-          git push origin changelog-branch
-
-      - name: Create or Update Pull Request
+      - name: Create Pull Request
         uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          branch: changelog-branch
+          branch: update-changelog
           title: "Update Changelog for release ${{ github.event.release.name }}"
-          body: "Automated update of CHANGELOG.md for release ${{ github.event.release.name }}"
-          base: main
+          body: ${{ github.event.release.body }}
+          base: main,
+          commit-message: "Update CHANGELOG.md"
+          committer: GitHub <noreply@github.com
           delete-branch: false
+          labels: |
+            automated-pr
