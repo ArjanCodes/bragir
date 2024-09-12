@@ -1,65 +1,54 @@
-name: "Update Changelog"
+name: Update Changelog Branch
 
 on:
   release:
-    types: [released]
+    types: [published] # Trigger when a release is published
 
 jobs:
-  update:
+  update_changelog:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout the main branch
-      - name: Checkout code
-        uses: actions/checkout@v2
-        with:
-          ref: main
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Git user
+        run: |
+          git config user.name "GitHub Action"
+          git config user.email "action@github.com"
+
+      - name: Create or switch to changelog branch
+        run: |
+          git checkout -B changelog-branch # Switch to or create changelog-branch
 
       - name: Update Changelog
         uses: stefanzweifel/changelog-updater-action@v1
         with:
-          release-notes: ${{ github.event.release.body }}
-          latest-version: ${{ github.event.release.name }}
+          release-notes: ${{ github.event.release.body }} # Add release notes to changelog
+          latest-version: ${{ github.event.release.name }} # Add latest version to changelog
 
-      - name: Reset update-changelog branch
-        run: |
-          git fetch origin main:main
-          git reset --hard main
-
-      - name: debug
-        run: |
-          git status
-          git branch
-
-      - uses: EndBug/add-and-commit@v9 # You can change this to use a specific version.
+      - name: Add and commit changes to changelog.md
+        uses: EndBug/add-and-commit@v9
         with:
           add: "./CHANGELOG.md"
-          author_name: Author Name
-          author_email: mail@example.com
-          committer_name: Committer Name
-          committer_email: mail@example.com
+          author_name: "Your Author Name"
+          author_email: "author@example.com"
+          committer_name: "Committer Name"
+          committer_email: "committer@example.com"
           default_author: github_actor
-          message: "Your commit message"
-          new_branch: custom-new-branch-${{ github.event.release.name }}
+          message: "Update CHANGELOG.md for release ${{ github.event.release.name }}"
+          new_branch: changelog-branch
 
-      - name: debug
+      - name: Push changes
         run: |
-          git status
-          git branch
+          git push origin changelog-branch
 
-      - name: Rebase branch
-        run: |
-          git rebase origin/main
-
-      - name: Push branch
-        run: |
-          git push origin custom-new-branch-${{ github.event.release.name }}
-
-      - name: Create Pull Request
+      - name: Create or Update Pull Request
         uses: peter-evans/create-pull-request@v5
         with:
-          branch: update-changelog
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: changelog-branch
+          title: "Update Changelog for release ${{ github.event.release.name }}"
+          body: "Automated update of CHANGELOG.md for release ${{ github.event.release.name }}"
           base: main
-          title: "Auto update CHANGELOG"
-          commit-message: "Auto update CHANGELOG"
-          delete-branch: true
+          delete-branch: false
