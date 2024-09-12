@@ -26,3 +26,11 @@ jobs:
           branch: main
           commit_message: Update CHANGELOG
           file_pattern: CHANGELOG.md
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          branch: update-changelog-${{ github.event.release.name }}
+          base: main
+          title: "Auto update CHANGELOG"
+          commit-message: "Auto update CHANGELOG"
