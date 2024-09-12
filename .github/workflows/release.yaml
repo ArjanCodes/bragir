@@ -80,6 +80,11 @@ jobs:
           python-version: "3.12"
           cache: "poetry"
 
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
       - name: Set project version with Poetry
         run: |
           poetry version ${{ needs.details.outputs.new_version }}
