@@ -27,7 +27,6 @@ jobs:
           body: ${{ github.event.release.body }}
           base: main,
           commit-message: "Update CHANGELOG.md"
-          committer: GitHub <noreply@github.com
           delete-branch: false
           labels: |
             automated-pr
