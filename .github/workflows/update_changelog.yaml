@@ -29,6 +29,11 @@ jobs:
           message: "Your commit message"
           new_branch: custom-new-branch-${{ github.event.release.name }}
 
+      - name: debug
+        run: |
+          git status
+          git branch
+
       - name: Rebase branch
         run: |
           git rebase origin/main
