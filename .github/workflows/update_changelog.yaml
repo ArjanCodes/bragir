@@ -21,6 +21,11 @@ jobs:
           release-notes: ${{ github.event.release.body }}
           latest-version: ${{ github.event.release.name }}
 
+      - name: Reset update-changelog branch
+        run: |
+          git fetch origin main:main
+          git reset --hard main
+
       - name: debug
         run: |
           git status
@@ -53,7 +58,8 @@ jobs:
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v5
         with:
-          branch: update-changelog-${{ github.event.release.name }}
+          branch: update-changelog
           base: main
           title: "Auto update CHANGELOG"
           commit-message: "Auto update CHANGELOG"
+          delete-branch: true
