@@ -12,6 +12,11 @@ on:
         description: "Tag name (if available)"
         required: false
 
+env:
+  OWNER: ArjanCodes
+  REPO: homebrew-core
+  PACKAGE_NAME: bragir
+
 jobs:
   homebrew:
     name: Bump Homebrew formula
@@ -26,13 +31,13 @@ jobs:
 
       - name: Set up Git
         run: |
-          git config --global user.name "Bragir GitHub Actions Bot"
-          git config --global user.email "bragir@bot.com"
+          git config --global user.name "${{env.PACKAGE_NAME}} GitHub Actions Bot"
+          git config --global user.email "${{env.PACKAGE_NAME}}@bot.com"
 
       - name: Checkout Target Repo
         uses: actions/checkout@v3
         with:
-          repository: ArjanCodes/homebrew-core # Target repository
+          repository: ${{env.OWNER}}/${{env.REPO}} # Target repository
           token: ${{ secrets.COMMITTER_TOKEN }} # Using the secret PAT
 
       - name: Extract tag
@@ -66,10 +71,10 @@ jobs:
         uses: dawidd6/action-homebrew-bump-formula@v3
         with:
           token: ${{secrets.COMMITTER_TOKEN}}
-          user_name: bragir_bot
-          user_email: bragir@bot.com
-          tap: ArjanCodes/homebrew-core
-          formula: bragir
+          user_name: ${{env.PACKAGE_NAME}}_bot
+          user_email: ${{env.PACKAGE_NAME}}@bot.com
+          tap: ${{env.OWNER}}/${{env.REPO}}
+          formula: ${{env.PACKAGE_NAME}}
           tag: ${{steps.versioning.outputs.tag-name}}
           force: false # true
           livecheck: true

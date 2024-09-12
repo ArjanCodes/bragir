@@ -3,8 +3,13 @@ name: release
 on:
   push:
     tags:
-      - "*-release"
-      - "*-beta"
+      - "[0-9]+.[0-9]+.[0-9]+"
+      - "[0-9]+.[0-9]+.[0-9]+a[0-9]+"
+      - "[0-9]+.[0-9]+.[0-9]+b[0-9]+"
+      - "[0-9]+.[0-9]+.[0-9]+rc[0-9]+"
+
+env:
+  PACKAGE_NAME: "bragir"
 
 jobs:
   unit-test:
@@ -13,7 +18,6 @@ jobs:
   details:
     runs-on: ubuntu-latest
     outputs:
-      package_name: ${{ steps.package_information.outputs.package_name }}
       new_version: ${{ steps.release.outputs.new_version }}
       suffix: ${{ steps.release.outputs.suffix }}
       tag_name: ${{ steps.release.outputs.tag_name }}
@@ -26,7 +30,7 @@ jobs:
           if [ "${{ github.ref_type }}" = "tag" ]; then
             TAG_NAME=${GITHUB_REF#refs/tags/}
             NEW_VERSION=$(echo $TAG_NAME | awk -F'-' '{print $1}')
-            SUFFIX=$(echo $TAG_NAME | awk -F'-' '{print $2}')
+            SUFFIX=$(echo $TAG_NAME | grep -oP '[a-z]+[0-9]+' || echo "")
             echo "new_version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
             echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
             echo "tag_name=$TAG_NAME" >> "$GITHUB_OUTPUT"
@@ -38,28 +42,13 @@ jobs:
             exit 1
           fi
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.12"
-          cache: "poetry"
-
-      - name: Get Name of Package
-        id: package_information
-        run: |
-          package_information=$(poetry version)
-          PACKAGE_NAME=$(echo $package_information | awk '{print $1}')
-          echo "Package name: $PACKAGE_NAME"
-          echo "package_name=$PACKAGE_NAME" >> "$GITHUB_OUTPUT"
-
   check_pypi:
     needs: details
     runs-on: ubuntu-latest
     steps:
       - name: Fetch information from PyPI
         run: |
-          PACKAGE_NAME=${{ needs.details.outputs.package_name}}
-          response=$(curl -s https://pypi.org/pypi/$PACKAGE_NAME/json || echo "{}")
+          response=$(curl -s https://pypi.org/pypi/${{ env.PACKAGE_NAME }}/json || echo "{}")
           latest_previous_version=$(echo $response | grep -oP '"releases":\{"\K[^"]+' | sort -rV | head -n 1)
           if [ -z "$latest_previous_version" ]; then
             echo "Package not found on PyPI."
@@ -154,7 +143,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: dist
-          path: ./dist/
+          path: dist/
 
       - name: Create GitHub Release
         id: create_release
@@ -188,14 +177,14 @@ jobs:
 
       - name: Bump version
         run: |
-          VERSION="${{ needs.details.outputs.new_version }}"
-          poetry version $VERSION
+          NEW_VERSION="${{ needs.details.outputs.new_version }}"
+          poetry version $NEW_VERSION
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-          git checkout -b version-bump-${{ needs.details.outputs.new_version }}
+          git checkout -b version-bump-to-$NEW_VERSION
           git add pyproject.toml
-          git commit -m "Bump version to $VERSION"
-          git push origin version-bump-${{ needs.details.outputs.new_version }}
+          git commit -m "Bump version to $NEW_VERSION"
+          git push origin version-bump-to-$NEW_VERSION
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v4
@@ -204,45 +193,3 @@ jobs:
           title: "Bump version to ${{ needs.details.outputs.new_version }}"
           body: "This PR bumps the version to ${{ needs.details.outputs.new_version }}."
           labels: "version-bump"
-
-  update_changelog:
-    needs: [details, github_release, pypi_publish, bump-version]
-    environment: release
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-
-      - name: Get previous tag
-        id: previousTag
-        run: |
-          name=$(git --no-pager tag --sort=creatordate --merged ${{ needs.details.outputs.tag_name }} | tail -2 | head -1)
-          echo "previousTag: $name"
-          echo "previousTag=$name" >> $GITHUB_ENV
-
-      - name: Update CHANGELOG
-        uses: requarks/changelog-action@v1
-        with:
-          token: ${{ github.token }}
-          fromTag: ${{ github.ref_name }}
-          toTag: ${{ env.previousTag }}
-          writeToFile: false
-          excludeTypes: doc, style, test, refactor, ci, other
-
-      - name: Commit CHANGELOG.md
-        uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          branch: update-changelog-${{ needs.details.outputs.tag_name }}
-          commit_message: "docs: update CHANGELOG.md for ${{ needs.details.outputs.tag_name }}[skip ci]"
-          file_pattern: CHANGELOG.md
-
-      - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v4
-        with:
-          branch: update-changelog-${{ needs.details.outputs.tag_name }}
-          title: "docs: update CHANGELOG.md for ${{ needs.details.outputs.tag_name }}"
-          body: "This PR updates the CHANGELOG.md for the release ${{ needs.details.outputs.tag_name }}"
-          labels: "documentation"
-          base: main
