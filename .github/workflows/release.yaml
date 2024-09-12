@@ -78,7 +78,6 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: "3.12"
-          cache: "poetry"
 
       - name: Install Poetry
         run: |
@@ -175,7 +174,11 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: "3.12"
-          cache: "poetry"
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Install dependencies
         run: poetry install
