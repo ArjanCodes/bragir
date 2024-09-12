@@ -31,7 +31,6 @@ jobs:
 
       - name: Rebase branch
         run: |
-          git fetch origin
           git rebase origin/main
 
       - name: Push branch
