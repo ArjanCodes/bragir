@@ -14,17 +14,18 @@ jobs:
         with:
           ref: main
 
-      - name: Update Changelog
-        uses: stefanzweifel/changelog-updater-action@v1
-        with:
-          release-notes: ${{ github.event.release.body }} # Add release notes to changelog
-          latest-version: ${{ github.event.release.name }} # Add latest version to changelog
+      - name: minor update
+        run: touch test.md
+      #   - name: Update Changelog
+      #     uses: stefanzweifel/changelog-updater-action@v1
+      #     with:
+      #       release-notes: ${{ github.event.release.body }} # Add release notes to changelog
+      #       latest-version: ${{ github.event.release.name }} # Add latest version to changelog
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          branch: update-changelog
           title: "Update Changelog for release ${{ github.event.release.name }}"
           body: ${{ github.event.release.body }}
           base: main,
