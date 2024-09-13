@@ -5,19 +5,14 @@ on: workflow_call
 jobs:
   test:
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        python-version: [3.12]
-
     steps:
       - name: Check out the repository
         uses: actions/checkout@v3
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+      - name: Set up Python
+        uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: 3.12
 
       - name: Install Poetry
         run: |
@@ -25,8 +20,11 @@ jobs:
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Install dependencies
-        run: poetry install && poetry install --dev-dependency
+        run: poetry install
+
+      - name: Install ffmpeg
+        run: sudo apt-get install ffmpeg
 
       - name: Run tests
         run: |
-          pytest
+          poetry run pytest
