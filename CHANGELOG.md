@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.16 - 2024-09-13
+
+**Full Changelog**: https://github.com/ArjanCodes/bragir/compare/1.2.15...1.2.16
+
 ## 1.2.15 - 2024-09-13
 
 **Full Changelog**: https://github.com/ArjanCodes/bragir/compare/1.2.14...1.2.15
