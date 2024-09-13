@@ -146,13 +146,9 @@ jobs:
           gh release create ${{ needs.details.outputs.tag_name }} dist/* --title ${{ needs.details.outputs.tag_name }} --generate-notes
 
   bump-homebrew-formula:
-    runs-on: ubuntu-latest
-    environment: release
     needs: [details, github_release, pypi_publish]
-    steps:
-      - uses: arjancodes/bragir/.github/workflows/bump_homebrew_formula.yaml@main
-        with:
-          COMMITTER_TOKEN: ${{ secrets.COMMITTER_TOKEN }}
+    uses: arjancodes/bragir/.github/workflows/bump_homebrew_formula.yaml@main
+    secrets: inherit
 
   bump-version:
     needs: [details, github_release, pypi_publish]
