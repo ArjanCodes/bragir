@@ -14,13 +14,11 @@ jobs:
         with:
           ref: main
 
-      - name: minor update
-        run: touch test.md
-      #   - name: Update Changelog
-      #     uses: stefanzweifel/changelog-updater-action@v1
-      #     with:
-      #       release-notes: ${{ github.event.release.body }} # Add release notes to changelog
-      #       latest-version: ${{ github.event.release.name }} # Add latest version to changelog
+      - name: Update Changelog
+        uses: stefanzweifel/changelog-updater-action@v1
+        with:
+          release-notes: ${{ github.event.release.body }} # Add release notes to changelog
+          latest-version: ${{ github.event.release.name }} # Add latest version to changelog
 
       # Step 3: Create the pull request using 'gh' command
       - name: Create Pull Request
