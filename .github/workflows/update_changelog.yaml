@@ -22,12 +22,6 @@ jobs:
       #       release-notes: ${{ github.event.release.body }} # Add release notes to changelog
       #       latest-version: ${{ github.event.release.name }} # Add latest version to changelog
 
-      # Step 2: Set up GitHub CLI
-      - name: Set up GitHub CLI
-        uses: actions4gh/setup-gh@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-
       # Step 3: Create the pull request using 'gh' command
       - name: Create Pull Request
         run: |
