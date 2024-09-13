@@ -151,15 +151,12 @@ jobs:
 
       - name: Create GitHub Release
         id: create_release
-        uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          tag_name: ${{ needs.details.outputs.tag_name }}
-          release_name: ${{ needs.details.outputs.tag_name }}
-          body: "Release of version ${{ needs.details.outputs.new_version }}"
-          draft: false
-          prerelease: ${{ needs.details.outputs.suffix != 'release' }} # Mark as prerelease for non-release
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create ${{ needs.details.outputs.tag_name }} dist/* 
+          --title ${{ needs.details.outputs.tag_name }} 
+          --generate-notes
 
   bump-version:
     needs: [details, github_release, pypi_publish]
