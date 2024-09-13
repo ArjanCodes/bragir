@@ -142,9 +142,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create ${{ needs.details.outputs.tag_name }} dist/* 
-          --title ${{ needs.details.outputs.tag_name }} 
-          --generate-notes
+          gh release create ${{ needs.details.outputs.tag_name }} dist/* --title ${{ needs.details.outputs.tag_name }} --generate-notes
 
   bump-version:
     needs: [details, github_release, pypi_publish]
