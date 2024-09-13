@@ -30,11 +30,17 @@ def group_audio_segments(
         return []
 
     total_duration = sum(obj.duration_seconds for obj in audio_segments)
-    if total_duration < duration_limit_seconds:
-        return [combine(audio_segments)]
 
-    grouped_audio_segments = []
-    current_group = []
+    if total_duration < duration_limit_seconds:
+        combined_audio_segment = combine(audio_segments)
+
+        if combined_audio_segment is None:
+            return []
+
+        return [combined_audio_segment]
+
+    grouped_audio_segments: list[AudioSegment] = []
+    current_group: list[AudioSegment] = []
     total_duration = 0.0
 
     for obj in audio_segments:
@@ -50,6 +56,7 @@ def group_audio_segments(
 
     # Handle the last group if not empty
     combined = combine(current_group)
+
     if combined:
         grouped_audio_segments.append(combined)
 
