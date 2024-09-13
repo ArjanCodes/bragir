@@ -1,12 +1,9 @@
 name: Bump Homebrew formula
 
 on:
-  workflow_call:
-    secrets:
-      COMMITTER_TOKEN:
-        required: true
   release:
     types: [published]
+  workflow_dispatch:
 
 env:
   OWNER: ArjanCodes
@@ -17,6 +14,7 @@ jobs:
   homebrew:
     name: Bump Homebrew formula
     runs-on: ubuntu-latest
+    environment: release
     permissions:
       contents: write
     steps:
@@ -54,5 +52,6 @@ jobs:
           tap: ${{env.OWNER}}/${{env.REPO}}
           formula: ${{env.PACKAGE_NAME}}
           tag: ${{steps.versioning.outputs.tag_name}}
+          no_fork: false
           force: false # true
           livecheck: true
