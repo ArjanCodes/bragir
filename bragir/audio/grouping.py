@@ -4,13 +4,21 @@ from bragir.tracing.logger import logger
 
 
 def combine(audio_segments: list[AudioSegment]) -> AudioSegment | None:
-    if len(audio_segments) >= 1:
-        combined_no_crossfade = audio_segments[0]
-        for segment in audio_segments[1:]:
-            combined_no_crossfade += segment
-        return combined_no_crossfade
+    if not audio_segments:
+        return None
 
-    return None
+    if len(audio_segments) == 1:
+        return audio_segments[0]
+
+    combined_no_crossfade: AudioSegment = audio_segments[0]
+
+    for segment in audio_segments[1:]:
+        # Can't type check this because of pydub's operator overloading
+        combined_no_crossfade += segment
+
+    assert isinstance(combined_no_crossfade, AudioSegment)
+
+    return combined_no_crossfade
 
 
 def group_audio_segments(
