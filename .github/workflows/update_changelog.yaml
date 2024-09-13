@@ -24,6 +24,8 @@ jobs:
 
       # Step 3: Create the pull request using 'gh' command
       - name: Create Pull Request
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           gh pr create \
             --base main \
