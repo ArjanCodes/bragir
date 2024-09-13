@@ -1,7 +1,7 @@
 from typing import Any
 from openai import OpenAI
 
-from bragir.files.file import File
+from bragir.files import File
 from bragir.tracing.logger import logger
 from bragir.timer import timing_decorator
 

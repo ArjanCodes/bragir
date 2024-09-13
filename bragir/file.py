@@ -2,7 +2,7 @@ import os
 
 import click
 from bragir.constants import TOKEN_LIMIT
-from bragir.files.file import File
+from bragir.files import File
 from bragir.languages import Languages
 from bragir.audio.chunking import chunk_audio
 from bragir.srt.srt_part import SRTPart

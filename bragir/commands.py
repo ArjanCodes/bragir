@@ -8,8 +8,7 @@ from bragir.file import (
     get_new_file_path,
     process_files,
 )
-from bragir.files.file import File
-from bragir.files.operations import create_file, read_file
+from bragir.files import File, create_file, read_file
 from bragir.languages import Languages, parse_languages
 from bragir.spinner import spinner
 from bragir.tracing.logger import logger
