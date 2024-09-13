@@ -2,15 +2,7 @@ name: Bump Homebrew formula
 
 on:
   release:
-    types: [released]
-  workflow_dispatch:
-    inputs:
-      version:
-        description: "Version to bump"
-        required: false
-      tag-name:
-        description: "Tag name (if available)"
-        required: false
+    types: [published]
 
 env:
   OWNER: ArjanCodes
@@ -47,24 +39,8 @@ jobs:
               TAG_NAME=${GITHUB_REF#refs/tags/}
               VERSION=${TAG_NAME#v}
               echo "::set-output name=version::$VERSION"
-              echo "::set-output name=tag-name::$TAG_NAME"
+              echo "::set-output name=tag_name::$TAG_NAME"
               echo "Tag name is $TAG_NAME"
-          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-              # Assuming input variables are passed as inputs.version and inputs.tag_name
-              VERSION="${{ inputs.version }}"
-              TAG_NAME="${{ inputs.tag-name }}"
-
-              if [ -z "$VERSION" ] || [ -z "$TAG_NAME" ]; then
-                  echo "Version or tag name input is missing"
-                  exit 1
-              fi
-
-              echo "::set-output name=version::$VERSION"
-              echo "::set-output name=tag-name::$TAG_NAME"
-              echo "Using manual inputs: Version is $VERSION, Tag name is $TAG_NAME"
-          else
-              echo "No tag found and not a manual trigger"
-              exit 1
           fi
 
       - name: Update Homebrew formula
@@ -75,6 +51,6 @@ jobs:
           user_email: ${{env.PACKAGE_NAME}}@bot.com
           tap: ${{env.OWNER}}/${{env.REPO}}
           formula: ${{env.PACKAGE_NAME}}
-          tag: ${{steps.versioning.outputs.tag-name}}
+          tag: ${{steps.versioning.outputs.tag_name}}
           force: false # true
           livecheck: true
