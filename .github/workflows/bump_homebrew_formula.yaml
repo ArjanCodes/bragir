@@ -2,6 +2,9 @@ name: Bump Homebrew formula
 
 on:
   workflow_call:
+    secrets:
+      COMMITTER_TOKEN:
+        required: true
   release:
     types: [published]
 
@@ -12,11 +15,10 @@ env:
 
 jobs:
   homebrew:
-    environment: release
     name: Bump Homebrew formula
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
     steps:
       - name: Checkout Source Repository
         uses: actions/checkout@v2
