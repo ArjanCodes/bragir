@@ -12,9 +12,8 @@ env:
 
 jobs:
   homebrew:
+    environment: release
     name: Bump Homebrew formula
-    # Skip this job in case of git pushes to prerelease tags
-    if: ${{ github.event_name != 'push' || !contains(github.ref, '-') }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -34,7 +33,6 @@ jobs:
           token: ${{ secrets.COMMITTER_TOKEN }} # Using the secret PAT
 
       - name: Extract tag
-        if: inputs.version != ''
         id: versioning
         run: |
           if [ "${{ github.ref_type }}" = "tag" ]; then

@@ -146,6 +146,7 @@ jobs:
           gh release create ${{ needs.details.outputs.tag_name }} dist/* --title ${{ needs.details.outputs.tag_name }} --generate-notes
 
   bump-homebrew-formula:
+    needs: [details, github_release, pypi_publish]
     uses: arjancodes/bragir/.github/workflows/bump_homebrew_formula.yaml@main
 
   bump-version:
