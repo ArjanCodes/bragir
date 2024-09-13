@@ -17,6 +17,7 @@ jobs:
 
   details:
     runs-on: ubuntu-latest
+    needs: unit-test
     outputs:
       new_version: ${{ steps.release.outputs.new_version }}
       suffix: ${{ steps.release.outputs.suffix }}
@@ -143,6 +144,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create ${{ needs.details.outputs.tag_name }} dist/* --title ${{ needs.details.outputs.tag_name }} --generate-notes
+
+  bump-homebrew-formula:
+    uses: arjancodes/bragir/.github/workflows/bump_homebrew_formula.yaml@main
 
   bump-version:
     needs: [details, github_release, pypi_publish]
