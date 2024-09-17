@@ -153,26 +153,6 @@ jobs:
     environment:
       name: release
     steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v3
-        with:
-          name: dist
-          path: dist/
-
-      - name: Get SHA256 value of the wheel
-        id: sha256
-        env:
-          PACKAGE_NAME: bragir
-        run: |
-          # Change to the GitHub workspace directory
-          cd $GITHUB_WORKSPACE
-          # List the contents of the dist directory for debugging
-          ls dist/
-          # Compute SHA256 checksum of the tar.gz file
-          SHA256=$(shasum -a 256 dist/$PACKAGE_NAME*.tar.gz | awk '{print $1}')
-          echo "SHA256=$SHA256" >> $GITHUB_ENV
-          echo "Computed SHA256: $SHA256"
-
       - name: Dispatch Repository Dispatch event
         uses: peter-evans/repository-dispatch@v2
         with:
@@ -182,13 +162,11 @@ jobs:
           client-payload: |-
             { 
               "formula_version": "${{env.FORMULA_VERSION}}", 
-              "sha256": "${{ env.SHA256 }}", 
               "formula_url": "${{ env.FORMULA_URL }}", 
               "formula_name": "${{ env.FORMULA_NAME }}"
             }
         env:
           FORMULA_VERSION: ${{ needs.details.outputs.new_version }}
-          SHA256: ${{ env.SHA256 }}
           FORMULA_NAME: ${{ env.PACKAGE_NAME }}
           FORMULA_URL: https://github.com/${{env.OWNER}}/${{env.PACKAGE_NAME}}/releases/download/${{ needs.details.outputs.new_version }}/${{env.PACKAGE_NAME}}-${{ needs.details.outputs.new_version }}.tar.gz
 
