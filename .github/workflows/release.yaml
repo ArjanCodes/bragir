@@ -150,6 +150,8 @@ jobs:
     name: Dispatch event to Repo B
     needs: [details, github_release, pypi_publish]
     runs-on: ubuntu-latest
+    environment:
+      name: release
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v3
