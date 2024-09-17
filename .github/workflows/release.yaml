@@ -10,6 +10,7 @@ on:
 
 env:
   PACKAGE_NAME: "bragir"
+  OWNER: "ArjanCodes"
 
 jobs:
   # unit-test:
@@ -145,7 +146,38 @@ jobs:
         run: |
           gh release create ${{ needs.details.outputs.tag_name }} dist/* --title ${{ needs.details.outputs.tag_name }} --generate-notes
 
-  bump-version:
+  bump_homebrew_formula:
+    name: Dispatch event to Repo B
+    needs: [details, github_release, pypi_publish]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: dist
+          path: dist/
+
+      - name: get SHA256 value of the wheel
+        id: sha256
+        run: |
+          SHA256=$(shasum -a 256 dist/*.tag.gz | awk '{print $1}')
+          echo "SHA256=$SHA256" >> $GITHUB_ENV
+
+      - name: Dispatch Repository Dispatch event
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
+          repository: ArjanCodes/homebrew-core
+          event-type: "update-formula"
+          client-payload: |
+            '{"formula_version": ${{env.FORMULA_VERSION}}, "sha256": ${{ env.SHA256 }}, "formula_url": ${{ env.FORMULA_URL }} , "formula_name": ${{ env.FORMULA_NAME }} }'
+        env:
+          FORMULA_VERSION: ${{ needs.details.outputs.new_version }}
+          SHA256: ${{ env.SHA256 }}
+          FORMULA_NAME: ${{ env.PACKAGE_NAME }}
+          FORMULA_URL: https://github.com/${{env.OWNER}}/${{env.PACKAGE_NAME}}/releases/download/${{ needs.details.outputs.new_version }}/${{env.PACKAGE_NAME}}-${{ needs.details.outputs.new_version }}.tar.gz
+
+  bump_version:
     needs: [details, github_release, pypi_publish]
     runs-on: ubuntu-latest
     steps:
