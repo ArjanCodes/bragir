@@ -166,7 +166,7 @@ jobs:
       - name: Dispatch Repository Dispatch event
         uses: peter-evans/repository-dispatch@v2
         with:
-          token: ${{ secrets.PAT_TOKEN }}
+          token: ${{ secrets.HOMEBREW_GITHUB_API_TOKEN }}
           repository: ArjanCodes/homebrew-core
           event-type: "update-formula"
           client-payload: |
