@@ -176,11 +176,16 @@ jobs:
       - name: Dispatch Repository Dispatch event
         uses: peter-evans/repository-dispatch@v2
         with:
-          token: ${{ secrets.HOMEBREW_GITHUB_API_TOKEN }}
+          token: ${{ secrets.BREW_TAP_TOKEN }}
           repository: ArjanCodes/homebrew-core
           event-type: "update-formula"
-          client-payload: |
-            '{"formula_version": "${{env.FORMULA_VERSION}}", "sha256": "${{ env.SHA256 }}", "formula_url": "${{ env.FORMULA_URL }}", "formula_name": "${{ env.FORMULA_NAME }}" }'
+          client-payload: |-
+            { 
+              "formula_version": "${{env.FORMULA_VERSION}}", 
+              "sha256": "${{ env.SHA256 }}", 
+              "formula_url": "${{ env.FORMULA_URL }}", 
+              "formula_name": "${{ env.FORMULA_NAME }}"
+            }
         env:
           FORMULA_VERSION: ${{ needs.details.outputs.new_version }}
           SHA256: ${{ env.SHA256 }}
