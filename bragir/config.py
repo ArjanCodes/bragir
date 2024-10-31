@@ -1,31 +1,35 @@
+import os
 from configparser import ConfigParser
 from enum import StrEnum, auto
-import os
 from pathlib import Path
+from typing import Any
 
 import click
-from pydantic import BaseModel, SecretStr, ValidationError
+from pydantic import BaseModel
 
+from bragir.constants.ai import AIModel
 from bragir.tracing.logger import logger
 
-HOMEBREW_PREFIX = "/opt/homebrew"
+CONFIG_NAME = "config.ini"
+HOME_USER_PATH = Path.home()
+BRAGIR_DIRECTORY = HOME_USER_PATH / ".bragir"
+CONFIG_FILE_PATH = BRAGIR_DIRECTORY / CONFIG_NAME
 
-# Set the configuration directory and file path
-CONFIG_DIR = Path(HOMEBREW_PREFIX) / "etc" / "bragir"
-CONFIG_FILE_PATH = CONFIG_DIR / "config.ini"
 
-BASE_CONFIG = """# DONT CHANGE STRUCTURE OF THIS FILE
-[audio]
-min_silence_len=1000
-silence_thresh=-40
-keep_silence=True
-
-[logging]
-level=info
-
-[client]
-openai_api_key=YOUR_API_KEY
-"""
+BASE_CONFIG = {
+    "audio": {
+        "min_silence_len": "1000",
+        "silence_thresh": "-40",
+        "keep_silence": "True",
+    },
+    "logging": {
+        "level": "info",
+    },
+    "client": {
+        "openai_api_key": "YOUR_API_KEY",
+        "model": AIModel.GPT_4O_MINI.value,
+    },
+}
 
 
 class LoggingLevel(StrEnum):
@@ -47,7 +51,8 @@ class LoggingConfig(BaseModel):
 
 
 class ClientConfig(BaseModel):
-    openai_api_key: SecretStr
+    openai_api_key: str
+    model: AIModel
 
 
 class Config(BaseModel):
@@ -56,40 +61,121 @@ class Config(BaseModel):
     client: ClientConfig
 
 
-def create_config_file(target_path: Path):
-    # Ensure the directory exists
-    os.makedirs(CONFIG_DIR, exist_ok=True)
+def create_config_file(file_path: Path = CONFIG_FILE_PATH) -> None:
+    logger.info(f"Creating config file at: {file_path}")
 
-    logger.info(f"Creating config file at: {target_path}")
+    # Ensure directory exists
+    os.makedirs(BRAGIR_DIRECTORY, exist_ok=True)
+
+    config_parser = ConfigParser()
+    config_parser.read_dict(BASE_CONFIG)
+
+    with open(file_path, "w") as file:
+        config_parser.write(file)
+
+
+def get_config_parser(file_path: Path) -> ConfigParser:
+    config_parser = ConfigParser()
+    config_parser.read(file_path)
+    return config_parser
+
+
+def find_section(
+    key: str,
+    config_parser: ConfigParser = get_config_parser(file_path=CONFIG_FILE_PATH),
+) -> str | None:
+    sections = config_parser.sections()
+
+    for section in sections:
+        if config_parser.has_option(section, key):
+            return section
+
+    return None
+
+
+def reset_config_file(
+    config_parser: ConfigParser = ConfigParser(), target_path: Path = CONFIG_FILE_PATH
+) -> None:
+    logger.info(f"Resetting config file at: {target_path}")
+    config_parser.read_dict(BASE_CONFIG)
+
     with open(target_path, "w") as file:
-        file.write(BASE_CONFIG)
+        config_parser.write(file)
+
+
+def set_config(config: Config, file_path: Path = CONFIG_FILE_PATH) -> None:
+    logger.info(f"Setting config file at {file_path}")
+    config_parser = get_config_parser(file_path=file_path)
+
+    for section, values in config.model_dump().items():
+        if not config_parser.has_section(section):
+            config_parser.add_section(section)
+
+        for key, value in values.items():
+            config_parser.set(section, key, str(value))
+
+    with open(file_path, "w") as file:
+        config_parser.write(file)
+
+
+def set_config_value(key: str, value: str, file_path: Path = CONFIG_FILE_PATH) -> None:
+    config_parser = get_config_parser(file_path=file_path)
+    section = find_section(key, config_parser)
+
+    if section is None:
+        logger.error(f"Section for key {key} not found {file_path}")
+        exit(1)
+
+    config_parser.set(section, key, value)
+
+    with open(file_path, "w") as file:
+        config_parser.write(file)
+
+
+def get_config(file_path: Path = CONFIG_FILE_PATH) -> Config | None:
+    config_parser = get_config_parser(file_path=file_path)
+
+    config_dict = {
+        section: dict(config_parser[section]) for section in config_parser.sections()
+    }
+
+    if config_dict == {}:
+        return None
+
+    return Config.model_validate(config_dict)
 
 
 def read_config(
     file_path: Path = CONFIG_FILE_PATH,
-) -> Config:
-    logger.info(f"Reading config from {file_path}")
-    config_parser = ConfigParser()
-    config_parser.read(file_path)
+):
+    config = get_config(file_path=file_path)
 
-    values = {
-        "audio": {
-            "min_silence_len": config_parser.getint("audio", "min_silence_len"),
-            "silence_thresh": config_parser.getint("audio", "silence_thresh"),
-            "keep_silence": config_parser.getboolean("audio", "keep_silence"),
-        },
-        "logging": {"level": config_parser.get("logging", "level")},
-        "client": {"openai_api_key": config_parser.get("client", "openai_api_key")},
-    }
+    if config is None:
+        logger.error("Config file not found")
+        exit(1)
 
-    audio_config = AudioConfig(**values["audio"])  # type: ignore
-    logging_config = LoggingConfig(**values["logging"])  # type: ignore
-    client_config = ClientConfig(**values["client"])  # type: ignore
+    for section_name, section_value in config.model_dump().items():
+        click.echo(click.style(f"[{section_name}]", fg="cyan", bold=True))
 
-    return Config(audio=audio_config, logging=logging_config, client=client_config)
+        for key, value in section_value.items():
+            if key == "openai_api_key":
+                click.echo(
+                    f"  {click.style(key, fg='yellow')} = {click.style("*************", fg='green')}"
+                )
+            else:
+                click.echo(
+                    f"  {click.style(key, fg='yellow')} = {click.style(str(value), fg='green')}"
+                )
+
+        click.echo()
 
 
-try:
-    config = read_config(Path(CONFIG_FILE_PATH))
-except ValidationError as e:
-    click.secho(f"Configuration validation error: {e}", fg="red")
+def update_dict(config: dict[str, Any], updates: dict[str, Any]) -> dict[str, Any]:
+    for key in config.keys():
+        if isinstance(config[key], dict):
+            config[key] = update_dict(config[key], updates)
+        else:
+            if key in updates:
+                config[key] = updates[key]
+
+    return config

@@ -1,9 +1,9 @@
 from anyio import Path
 from openai import OpenAI
-from bragir.tracing.logger import logger
-from bragir.file import calculate_file_size, process_file, remove_files
 
+from bragir.file import calculate_file_size, process_file, remove_files
 from bragir.timer import timing_decorator
+from bragir.tracing.logger import logger
 
 
 @timing_decorator
@@ -21,8 +21,6 @@ def transcribe_audio(client: OpenAI, audio_path: str) -> str:
 
 def transcribe_file(transcriber: OpenAI, path: str) -> list[str]:
     tmp_audio_paths: list[str] = []
-
-    print("Transcribing file")
 
     try:
         file_size_mbytes = calculate_file_size(path)

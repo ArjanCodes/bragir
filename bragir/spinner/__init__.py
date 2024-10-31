@@ -5,7 +5,8 @@ import sys
 import threading
 from datetime import timedelta
 from itertools import cycle
-from time import time, sleep
+from time import sleep, time
+
 from bragir.tracing.logger import logger
 
 

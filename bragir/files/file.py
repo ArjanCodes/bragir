@@ -1,6 +1,6 @@
-from dataclasses import dataclass, field
 import math
 import re
+from dataclasses import dataclass, field
 
 from bragir.constants import TOKEN_LIMIT
 from bragir.languages import Languages

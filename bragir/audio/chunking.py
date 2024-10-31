@@ -1,8 +1,8 @@
-from pydub import AudioSegment
+from pydub import AudioSegment  # type:ignore
 from pydub.silence import split_on_silence  # type:ignore
 
-from bragir.config import AudioConfig, config
 from bragir.audio.grouping import group_audio_segments
+from bragir.config import get_config
 from bragir.constants import DURATION_SECONDS_25MB
 from bragir.tracing.logger import logger
 
@@ -10,8 +10,15 @@ from bragir.tracing.logger import logger
 def chunk_audio(
     file_path: str,
     format: str = "mp4",
-    audio_config: AudioConfig = config.audio,
 ) -> list[AudioSegment]:
+    config = get_config()
+
+    if config is None:
+        logger.error("Config not found")
+        exit(1)
+
+    audio_config = config.audio
+
     sound: AudioSegment = AudioSegment.from_file(  # type:ignore
         file=file_path
     )

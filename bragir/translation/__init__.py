@@ -1,9 +1,10 @@
 from typing import Any
+
 from openai import OpenAI
 
 from bragir.files import File
-from bragir.tracing.logger import logger
 from bragir.timer import timing_decorator
+from bragir.tracing.logger import logger
 
 
 def split_by_breakpoints(

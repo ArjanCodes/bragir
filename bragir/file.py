@@ -1,10 +1,11 @@
 import os
 
 import click
+
+from bragir.audio.chunking import chunk_audio
 from bragir.constants import TOKEN_LIMIT
 from bragir.files import File
 from bragir.languages import Languages
-from bragir.audio.chunking import chunk_audio
 from bragir.srt.srt_part import SRTPart
 from bragir.tracing.logger import logger
 
@@ -130,7 +131,7 @@ def process_file(file_path: str) -> list[str]:
     _, file_extension = os.path.splitext(file_path)
     file_extension = file_extension.lower().replace(".", "")
 
-    chunks = chunk_audio(file_path, format=file_extension)
+    chunks = chunk_audio(file_path=file_path, format=file_extension)
     directory, base_name = os.path.split(file_path)
 
     chunk_paths: list[str] = []

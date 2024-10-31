@@ -1,7 +1,7 @@
-from importlib import resources
 import json
 import logging.config
 from abc import ABC, abstractmethod
+from importlib import resources
 
 
 class LoggerStrategy(ABC):

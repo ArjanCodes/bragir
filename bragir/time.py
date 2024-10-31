@@ -1,9 +1,9 @@
-from datetime import timedelta
 import re
+from datetime import timedelta
 from typing import Tuple
-from bragir.tracing.logger import logger
 
 from bragir.srt.srt_part import SRTPart
+from bragir.tracing.logger import logger
 
 
 def to_timestamp(td: timedelta) -> str:
