@@ -64,7 +64,7 @@ class Config(BaseModel):
 def create_config_file(file_path: Path = CONFIG_FILE_PATH) -> None:
     logger.info(f"Creating config file at: {file_path}")
 
-    # Ensure directory exists
+    # Ensure bragir directory exists
     os.makedirs(BRAGIR_DIRECTORY, exist_ok=True)
 
     config_parser = ConfigParser()
@@ -158,16 +158,15 @@ def read_config(
         click.echo(click.style(f"[{section_name}]", fg="cyan", bold=True))
 
         for key, value in section_value.items():
+
             if key == "openai_api_key":
                 click.echo(
                     f"  {click.style(key, fg='yellow')} = {click.style("*************", fg='green')}"
                 )
             else:
-                click.echo(
-                    f"  {click.style(key, fg='yellow')} = {click.style(str(value), fg='green')}"
-                )
+                click.echo(f"  {click.style(key, fg='yellow')} = {click.style(str(value), fg='green')}")
 
-        click.echo()
+        click.echo() 
 
 
 def update_dict(config: dict[str, Any], updates: dict[str, Any]) -> dict[str, Any]:
