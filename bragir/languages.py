@@ -1,6 +1,21 @@
 from enum import StrEnum, auto
 from typing import Any, Type
 
+BCP47_TAGS = {
+    "PORTUGUESE": "pt",
+    "SPANISH": "es",
+    "FRENCH": "fr",
+    "POLISH": "pl",
+    "GERMAN": "de",
+    "ITALIAN": "it",
+    "DUTCH": "nl",
+    "SWEDISH": "sv",
+    "DANISH": "da",
+    "NORWEGIAN": "no",
+    "FINNISH": "fi",
+    "TURKISH": "tr",
+}
+
 
 class Languages(StrEnum):
     PORTUGUESE = auto()
@@ -15,6 +30,21 @@ class Languages(StrEnum):
     NORWEGIAN = auto()
     FINNISH = auto()
     TURKISH = auto()
+
+    def get_bcp47_tag(self):
+        """
+        Returns the BCP47 tag for the language
+        Usage:
+
+        language = Languages.PORTUGUESE
+
+        language.get_bcp47_tag()
+
+        OR:
+
+        Languages.PORTUGUESE.get_bcp47_tag()
+        """
+        return BCP47_TAGS[self.name]
 
 
 def to_output(enum_class: Type[StrEnum]) -> str:
