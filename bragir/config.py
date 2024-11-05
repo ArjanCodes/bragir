@@ -158,15 +158,16 @@ def read_config(
         click.echo(click.style(f"[{section_name}]", fg="cyan", bold=True))
 
         for key, value in section_value.items():
-
             if key == "openai_api_key":
                 click.echo(
                     f"  {click.style(key, fg='yellow')} = {click.style("*************", fg='green')}"
                 )
             else:
-                click.echo(f"  {click.style(key, fg='yellow')} = {click.style(str(value), fg='green')}")
+                click.echo(
+                    f"  {click.style(key, fg='yellow')} = {click.style(str(value), fg='green')}"
+                )
 
-        click.echo() 
+        click.echo()
 
 
 def update_dict(config: dict[str, Any], updates: dict[str, Any]) -> dict[str, Any]:
