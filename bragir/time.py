@@ -18,8 +18,8 @@ def to_timestamp(td: timedelta) -> str:
 
 
 def to_timedelta(timestamp: str) -> timedelta:
-    parts = re.split("[:,.]", timestamp)
-    parts = [float(part) for part in parts]
+    splitted_timestamps = re.split("[:,.]", timestamp)
+    parts = [float(main_part) for main_part in splitted_timestamps]
 
     if len(parts) == 3:
         return timedelta(hours=parts[0], minutes=parts[1], seconds=parts[2])
