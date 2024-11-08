@@ -1,8 +1,6 @@
-import math
 import re
 from dataclasses import dataclass, field
 
-from bragir.constants import TOKEN_LIMIT
 from bragir.languages import Languages
 from bragir.srt.srt_part import SRTPart
 
@@ -22,7 +20,3 @@ class File:
     def number_of_tokens(self) -> int:
         words = re.findall(r"\w+|[^\w\s]", self.contents, re.UNICODE)
         return len(words) + self.contents.count(" ")
-
-    @property
-    def number_of_chunks(self) -> int:
-        return math.ceil(self.number_of_tokens / TOKEN_LIMIT)

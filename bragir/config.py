@@ -7,7 +7,7 @@ from typing import Any
 import click
 from pydantic import BaseModel
 
-from bragir.constants.ai import AIModel
+from bragir.constants.ai import POSSIBLE_MODELS
 from bragir.tracing.logger import logger
 
 CONFIG_NAME = "config.ini"
@@ -27,7 +27,7 @@ BASE_CONFIG = {
     },
     "client": {
         "openai_api_key": "YOUR_API_KEY",
-        "model": AIModel.GPT_4O_MINI.value,
+        "model": POSSIBLE_MODELS[0],
     },
 }
 
@@ -52,7 +52,7 @@ class LoggingConfig(BaseModel):
 
 class ClientConfig(BaseModel):
     openai_api_key: str
-    model: AIModel
+    model: str
 
 
 class Config(BaseModel):

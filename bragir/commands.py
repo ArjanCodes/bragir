@@ -1,7 +1,8 @@
+import asyncio
 from pathlib import Path
 
 import click
-from openai import OpenAI
+from openai import AsyncOpenAI
 
 from bragir.config import (
     CONFIG_FILE_PATH,
@@ -13,10 +14,11 @@ from bragir.config import (
     set_config,
     update_dict,
 )
-from bragir.constants.ai import AIModel
+from bragir.constants.ai import POSSIBLE_MODELS, get_model_limit
 from bragir.file import (
-    chunk_content_into_srt_parts,
-    process_files,
+    get_new_file_path,
+    get_srt_parts,
+    read_file,
 )
 from bragir.files import create_file
 from bragir.languages import Languages, parse_languages
@@ -26,8 +28,8 @@ from bragir.spinner import spinner
 from bragir.srt.srt_part import SRTPart
 from bragir.time import update_timestamps
 from bragir.tracing.logger import logger
-from bragir.transcription import transcribe_file
-from bragir.translation import translate_srt
+from bragir.transcription import async_transcribe_file
+from bragir.translation import async_translate_srt_parts
 
 
 @click.command(options_metavar="<options>")
@@ -50,15 +52,19 @@ def transcribe(context: click.Context, path: str, output: str) -> None:
     """
     logger.info("Starting transcription")
 
-    transcriber = context.obj["client"]
+    transcriber: AsyncOpenAI = context.obj["client"]
 
     file_paths = get_files(path)
 
     for file_path in file_paths:
-        transcripts: list[str] = transcribe_file(transcriber, file_path)
+        transcripts = asyncio.run(
+            async_transcribe_file(transcriber=transcriber, path=file_path)
+        )
+
+        print(transcripts)
 
         videos_srts: list[tuple[int, list[SRTPart]]] = [
-            (order, chunk_content_into_srt_parts(transcript))
+            (order, get_srt_parts(transcript))
             for order, transcript in enumerate(transcripts)
         ]
 
@@ -66,7 +72,7 @@ def transcribe(context: click.Context, path: str, output: str) -> None:
 
         srt_parts: list[SRTPart] = update_timestamps(sorted_videos)
 
-        contents = "".join([srt_part.srt_format for srt_part in srt_parts])
+        contents = "".join([srt_part.raw_srt_format for srt_part in srt_parts])
 
         target_path = get_target_path(file_path, output)
 
@@ -95,18 +101,25 @@ def translate(context: click.Context, path: str, language: str) -> None:
     """
     The translate command, translates either a single SRT file or files or directory of SRT files into the wanted language.
     """
-    logger.info("Starting translation")
+    translator: AsyncOpenAI = context.obj["client"]
 
-    translator: OpenAI = context.obj["client"]
+    config = get_config()
 
-    translate_to_languages: list[Languages] = parse_languages(language)
+    if config is None:
+        logger.error("Config file not found")
+        exit(1)
+
+    logger.info("Config file found")
+
+    limit = get_model_limit(config.client.model)
+
+    if limit is None:
+        logger.error("Model limit not found")
+        exit(1)
+
+    logger.info(f"Model limit found: {limit}")
 
     file_paths = get_files(path)
-
-    logger.info(
-        f"Translating to following language/languages: {' '.join([language.value for language in translate_to_languages])}"
-    )
-
     num_of_file_paths = len(file_paths)
 
     if num_of_file_paths == 1:
@@ -114,14 +127,31 @@ def translate(context: click.Context, path: str, language: str) -> None:
     else:
         logger.info(f"Translating {num_of_file_paths} files in directory {path}")
 
-    files = process_files(file_paths=file_paths, languages=translate_to_languages)
+    translate_to_languages: list[Languages] = parse_languages(language)
+    logger.info(
+        f"Translating to following language/languages: {' '.join([language.value for language in translate_to_languages])}"
+    )
 
-    for target_file in files:
-        translated_content = translate_srt(
-            translator, target_file, target_file.language.value
+    for file_path in file_paths:
+        file_content = read_file(file_path)
+
+        srt_parts: list[SRTPart] = get_srt_parts(file_content)
+
+        translated_parts = asyncio.run(
+            async_translate_srt_parts(
+                translator=translator, srt_parts=srt_parts, language=language
+            )
         )
-        logger.info(f"Creating file {target_file.target_path}")
-        create_file(target_file, translated_content)
+
+        translation: str = ""
+
+        for traslated_part in translated_parts:
+            translation += traslated_part.traslated_raw_srt_format
+
+        for language in translate_to_languages:
+            new_file_path = get_new_file_path(file_path, language)
+            create_file(new_file_path, translation)
+            logger.info(f"Created file {new_file_path}")
 
 
 @click.group(invoke_without_command=False)
@@ -202,7 +232,7 @@ def reset(path: Path) -> None:
     "--model",
     "-m",
     required=False,
-    type=click.Choice([ai_model.value for ai_model in AIModel], case_sensitive=False),
+    type=click.Choice(POSSIBLE_MODELS, case_sensitive=False),
     help="OpenAI model",
 )
 @click.option(

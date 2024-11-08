@@ -1,8 +1,11 @@
+import asyncio
 from typing import Any
 
-from openai import OpenAI
+from openai import AsyncOpenAI, OpenAI
+from pydantic import BaseModel
 
-from bragir.files import File
+from bragir.config import get_config
+from bragir.srt.srt_part import SRTPart
 from bragir.timer import timing_decorator
 from bragir.tracing.logger import logger
 
@@ -30,45 +33,109 @@ def split_by_breakpoints(
     return result
 
 
-def translate_content(client: OpenAI, text: str, language: str) -> str:
-    completion = client.chat.completions.create(
-        model="gpt-4-1106-preview",
+def translate(translator: OpenAI, part: SRTPart, language: str) -> str:
+    config = get_config()
+
+    if config is None:
+        raise Exception("Config not found")
+
+    #    model = config.client.model
+
+    completion = translator.beta.chat.completions.parse(
+        model="gpt-4o-2024-08-06",
         messages=[
             {
                 "role": "system",
-                "content": f"You are a translator machine, you can only translate to the following language {language}. You need to keep the exact same format as the file. only translate the pieces of text. Make sure that all the text is translated and that there are no timestamps missing. Don't add any whitespace on the first line of the file or the last line of the file",
+                "content": f"""
+                You are a translation machine that only translates text to **{language}**.
+
+                Translate only into {language} without altering any other language.
+
+                Index is the following: {part.index}
+            """,
             },
-            {"role": "user", "content": text},
+            {"role": "user", "content": part.content},
         ],
+        response_format=Part,
     )
 
     return completion.choices[0].message.content or ""
 
 
+async def async_translate(translator: AsyncOpenAI, part: SRTPart, language: str) -> str:
+    config = get_config()
+
+    if config is None:
+        raise Exception("Config not found")
+
+    #    model = config.client.model
+
+    completion = await translator.beta.chat.completions.parse(
+        model="gpt-4o-2024-08-06",
+        messages=[
+            {
+                "role": "system",
+                "content": f"""
+                You are a translation machine that only translates text to **{language}**.
+
+                Translate only into {language} without altering any other language.
+
+                Index is the following: {part.index}
+            """,
+            },
+            {"role": "user", "content": part.content},
+        ],
+        response_format=Part,
+    )
+
+    translated_part = completion.choices[0].message.parsed
+
+    if translated_part is None:
+        raise Exception("Translated part is None")
+
+    return translated_part.content
+
+
+async def translate_srt_part(
+    translator: AsyncOpenAI,
+    part: SRTPart,
+    language: str,
+) -> SRTPart:
+    config = get_config()
+
+    if config is None:
+        raise Exception("Config not found")
+
+    translation = await async_translate(translator, part, language)
+
+    part.translation = translation
+
+    return part
+
+
 @timing_decorator
-def translate_srt(translator: OpenAI, file: File, language: str) -> str:
-    logger.info(f"Translating {file.source_path} to {language}")
+def translate_srt_parts(
+    translator: OpenAI, parts: list[SRTPart], language: str
+) -> list[SRTPart]:
+    for i, part in enumerate(parts):
+        part.translation = translate(translator, part, language)
+        logger.info(f"Translated {i+1}/{len(parts)}")
 
-    translated_text = ""
+    return parts
 
-    if len(file.breakpoints) == 0:
-        translated_text += translate_content(translator, file.contents, language)
 
-    if len(file.breakpoints) > 0:
-        chunks = split_by_breakpoints(file.SRTParts, breakpoints=file.breakpoints)
+async def async_translate_srt_parts(
+    translator: AsyncOpenAI, srt_parts: list[SRTPart], language: str
+) -> list[SRTPart]:
+    tasks = [
+        translate_srt_part(translator=translator, part=part, language=language)
+        for part in srt_parts
+    ]
+    translated_parts = await asyncio.gather(*tasks)
 
-        for i, chunk in enumerate(chunks):
-            text = ""
-            for part in chunk:
-                text += part.srt_format
-            text.rstrip("\n")
+    return translated_parts
 
-            translated_text += translate_content(translator, text, language)
 
-            # Add new block onto the text
-            translated_text += "\n\n"
-
-            logger.info(f"Chunk {i + 1} translated")
-
-    logger.info(f"Translated {file.source_path} to {language}")
-    return translated_text
+class Part(BaseModel):
+    index: int
+    content: str

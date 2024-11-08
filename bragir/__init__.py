@@ -3,8 +3,8 @@ from .transcription import (
     transcribe_file as transcribe_file,
 )
 from .translation import (
-    translate_srt as translate_srt,
-    translate_content as translate_content,
+    translate_srt_part as translate_srt_part,
+    translate as translate,
 )
 from .languages import Languages as Languages
 from .files.file import File as File

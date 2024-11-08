@@ -1,12 +1,12 @@
 import os
+from typing import Callable
 
 import click
 
 from bragir.audio.chunking import chunk_audio
-from bragir.constants import TOKEN_LIMIT
 from bragir.files import File
 from bragir.languages import Languages
-from bragir.srt.srt_part import SRTPart
+from bragir.srt.srt_part import SRTPart, get_number_of_tokens
 from bragir.tracing.logger import logger
 
 
@@ -41,7 +41,7 @@ def get_new_file_path(file: str, target_language: Languages) -> str:
     return new_file_path
 
 
-def chunk_content_into_srt_parts(content: str) -> list[SRTPart]:
+def get_srt_parts(content: str) -> list[SRTPart]:
     blocks = content.strip().split("\n\n")
 
     SRTParts: list[SRTPart] = []
@@ -67,64 +67,76 @@ def chunk_content_into_srt_parts(content: str) -> list[SRTPart]:
     return SRTParts
 
 
-def get_breakpoints(SRTParts: list[SRTPart]) -> list[int]:
-    buffer_limit: int = TOKEN_LIMIT
-    buffer = 0
+def group_parts(
+    values: list[SRTPart],
+    limit: int | float,
+    token_counter: Callable[[str], int] = get_number_of_tokens,
+) -> list[list[SRTPart]]:
+    grouped_chunks: list[list[SRTPart]] = []
+    buffer: int = 0
+    pointer_a: int = 0
+    pointer_b: int = 0
 
-    breakpoints: list[int] = []
+    if len(values) == 0:
+        return []
 
-    for i, strpart in enumerate(SRTParts):
-        buffer += strpart.number_of_tokens
+    if len(values) == 1:
+        return [values]
 
-        if buffer > buffer_limit:
-            prev_srt_part = SRTParts[i - 1]
-            next_srt_part = strpart
+    for value in values:
+        raw_value = value.content
 
-            breakpoints.append(i)
+        tokens = token_counter(raw_value)
+        buffer += tokens
 
-            sentences: list[str] = prev_srt_part.content.split(".")
-
-            last_sentence = sentences[-1]
-
-            prev_srt_part.content = "".join(prev_srt_part.content.split(".")[:-1])
-
-            next_srt_part.content = last_sentence + " " + next_srt_part.content
-
+        if buffer >= limit:
+            grouped_chunks.append(values[pointer_a:pointer_b])
+            pointer_a = pointer_b
             buffer = 0
 
-    return breakpoints
+        # If we are at the end of the list
+        if pointer_b == len(values) - 1:
+            grouped_chunks.append(values[pointer_a : pointer_b + 1])
+            break
+
+        pointer_b += 1
+
+    return grouped_chunks
 
 
-def chunk_content(file_content: str) -> tuple[list[SRTPart], list[int]]:
-    srt_parts: list[SRTPart] = chunk_content_into_srt_parts(file_content)
+def group_values(
+    values: list[str],
+    limit: int,
+    token_counter: Callable[[str], int] = get_number_of_tokens,
+) -> list[list[str]]:
+    grouped_chunks: list[list[str]] = []
+    buffer: int = 0
+    pointer_a: int = 0
+    pointer_b: int = 0
 
-    breakpoints: list[int] = get_breakpoints(srt_parts)
+    if len(values) == 0:
+        return []
 
-    return (srt_parts, breakpoints)
+    if len(values) == 1:
+        return [values]
 
+    for value in values:
+        tokens = token_counter(value)
+        buffer += tokens
 
-def process_files(file_paths: list[str], languages: list[Languages]) -> list[File]:
-    processed_files: list[File] = []
-    for file_path in file_paths:
-        file_content = read_file(file_path)
-        (srt_parts, breakpoints) = chunk_content(file_content)
-        for language in languages:
-            base_path, file_name = os.path.split(file_path)
-            updated_file_name = f"{language.value.lower()[:3]}_{file_name}"
-            new_file_path = os.path.join(base_path, updated_file_name)
-            file = File(
-                name=file_path,
-                language=language,
-                SRTParts=srt_parts,
-                breakpoints=breakpoints,
-                target_path=new_file_path,
-                source_path=file_path,
-                contents=file_content,
-            )
+        if buffer >= limit:
+            grouped_chunks.append(values[pointer_a:pointer_b])
+            pointer_a = pointer_b
+            buffer = 0
 
-            processed_files.append(file)
+        # If we are at the end of the list
+        if pointer_b == len(values) - 1:
+            grouped_chunks.append(values[pointer_a : pointer_b + 1])
+            break
 
-    return processed_files
+        pointer_b += 1
+
+    return grouped_chunks
 
 
 def process_file(file_path: str) -> list[str]:

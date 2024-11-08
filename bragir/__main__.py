@@ -1,7 +1,7 @@
 import click
 
 from bragir import commands
-from bragir.client import initiate_client
+from bragir.client import initate_async_client
 from bragir.config import create_config_file, get_config
 from bragir.tracing.logger import setup_logging, logger
 from bragir.tracing.stratergies import InfoLoggerStrategy
@@ -41,7 +41,8 @@ def cli(context: click.Context) -> None:
         api_key: str = config.client.openai_api_key
 
         # TODO: Fix so the check does not always run, for example when calling the config commands
-        client = initiate_client(api_key=api_key)
+        # client = initiate_client(api_key=api_key)
+        client = initate_async_client(api_key=api_key)
 
         context.obj["client"] = client
 
