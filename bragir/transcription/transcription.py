@@ -15,6 +15,7 @@ async def async_transcribe_audio(client: AsyncOpenAI, audio_path: str) -> str:
     )
     return transcript
 
+
 def transcribe_audio(client: OpenAI, audio_path: str) -> str:
     logger.info(f"Transcribing {audio_path}")
     transcript = client.audio.transcriptions.create(
@@ -29,11 +30,10 @@ async def async_transcribe_audio_files(
     tasks = [async_transcribe_audio(transcriber, path) for path in audio_paths]
     return await asyncio.gather(*tasks)
 
+
 @timing_decorator
 def transcribe_audio_files(transcriber: OpenAI, audio_paths: list[str]) -> list[str]:
     return [transcribe_audio(transcriber, path) for path in audio_paths]
-
-
 
 
 async def async_transcribe_file(transcriber: AsyncOpenAI, path: str) -> list[str]:
