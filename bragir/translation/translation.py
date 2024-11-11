@@ -81,6 +81,8 @@ async def async_translate(translator: AsyncOpenAI, part: SRTPart, language: str)
                 Translate only into {language} without altering any other language.
 
                 Index is the following: {part.index}
+
+                Only return me the translated text.
             """,
             },
             {"role": "user", "content": part.content},
