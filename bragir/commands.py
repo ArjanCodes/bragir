@@ -24,6 +24,7 @@ from bragir.files import create_file
 from bragir.languages import Languages, parse_languages
 from bragir.messages import PROMPT_HELP
 from bragir.path import get_files, get_target_path
+from bragir.post_processing import process_text
 from bragir.spinner import spinner
 from bragir.srt.srt_part import SRTPart
 from bragir.time import update_timestamps
@@ -117,7 +118,7 @@ def translate(context: click.Context, path: str, language: str) -> None:
         logger.error("Model limit not found")
         exit(1)
 
-    logger.info(f"Model limit found: {limit}")
+    logger.info(f"Model limit: {limit}")
 
     file_paths = get_files(path)
     num_of_file_paths = len(file_paths)
@@ -143,10 +144,14 @@ def translate(context: click.Context, path: str, language: str) -> None:
             )
         )
 
+
+        for translated_part in translated_parts:
+            translated_part.translation = process_text(translated_part.translation)
+
         translation: str = ""
 
         for traslated_part in translated_parts:
-            translation += traslated_part.traslated_raw_srt_format
+            translation += traslated_part.translated_raw_srt_format
 
         for language in translate_to_languages:
             new_file_path = get_new_file_path(file_path, language)

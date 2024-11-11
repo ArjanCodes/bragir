@@ -23,7 +23,7 @@ class SRTPart:
         )
 
     @property
-    def traslated_raw_srt_format(self) -> str:
+    def translated_raw_srt_format(self) -> str:
         return f"{self.index}\n{self.start_time} --> {self.end_time}\n{self.translation}\n\n"
 
 
