@@ -42,7 +42,13 @@ pip install bragir
 ```
 
 ### Brew
-**Using brew**
+**NOTE:** Currently bragir is not available on the homebrew-core repo, so you will need to tap our custom [ArjanCodes repo](https://github.com/ArjanCodes/homebrew-core)
+
+```zsh
+brew tap arjancodes/core
+```
+
+Then, you can run the following command:
 
 ```zsh
 brew update && brew install bragir
