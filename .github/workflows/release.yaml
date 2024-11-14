@@ -87,6 +87,8 @@ jobs:
       - name: Bump version
         run: |
           NEW_VERSION="${{ needs.details.outputs.new_version }}"
+          echo "Current location: $(pwd)"
+
           sed -i '' "s/version = \"[0-9]*\.[0-9]*\.[0-9]*\"/version = \"$NEW_VERSION\"/" pyproject.toml
 
       - name: Install dependencies
