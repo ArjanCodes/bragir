@@ -81,21 +81,20 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
 
-      - name: Set project version with Poetry
+      - name: Bump version
         run: |
-          poetry version ${{ needs.details.outputs.new_version }}
+          NEW_VERSION="${{ needs.details.outputs.new_version }}"
+          sed -i '' "s/version = \"[0-9]*\.[0-9]*\.[0-9]*\"/version = \"$NEW_VERSION\"/" pyproject.toml
 
       - name: Install dependencies
-        run: poetry install --sync --no-interaction
+        run: uv sync --no-interaction
 
       - name: Build source and wheel distribution
         run: |
-          poetry build
+          uv build
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
@@ -118,8 +117,15 @@ jobs:
           name: dist
           path: dist/
 
-      - name: Publish distribution to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Publish to PyPI
+        run: |
+          uv publish --no-interaction
+
+      # - name: Publish distribution to PyPI
+      #   uses: pypa/gh-action-pypi-publish@release/v1
 
   github_release:
     name: Create GitHub Release
@@ -179,34 +185,15 @@ jobs:
         with:
           fetch-depth: 0 # Fetch full history to avoid issues with tags and branches
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.12"
-
-      - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
-
-      - name: Install dependencies
-        run: poetry install
-
       - name: Bump version
         run: |
           NEW_VERSION="${{ needs.details.outputs.new_version }}"
-          poetry version $NEW_VERSION
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          git checkout -b version-bump-to-$NEW_VERSION
-          git add pyproject.toml
-          git commit -m "Bump version to $NEW_VERSION"
-          git push origin version-bump-to-$NEW_VERSION
+          sed -i '' "s/version = \"[0-9]*\.[0-9]*\.[0-9]*\"/version = \"$NEW_VERSION\"/" pyproject.toml
 
-      - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v4
+      - uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          branch: version-bump-${{ needs.details.outputs.new_version }}
-          title: "Bump version to ${{ needs.details.outputs.new_version }}"
-          body: "This PR bumps the version to ${{ needs.details.outputs.new_version }}."
-          labels: "version-bump"
+          commit_message: Bumping version to ${{ needs.details.outputs.new_version }}
+          branch: bump-version-${{ needs.details.outputs.new_version }}
+          file_pattern: "pyproject.toml"
+          skip_dirty_check: true
+          create_branch: true
