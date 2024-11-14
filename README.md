@@ -21,10 +21,8 @@ The bragir CLI is a command-line application built using Click. Its primary purp
   - [Features](#features)
   - [Table of Contents](#table-of-contents)
   - [Installation](#installation)
-    - [FFmpeg](#ffmpeg)
-      - [Macos](#macos)
-      - [Linux](#linux)
-      - [Windows](#windows)
+    - [As a package](#as-a-package)
+    - [Brew](#brew)
     - [OpenAI](#openai)
     - [Bragir](#bragir-1)
 - [Usage](#usage)
@@ -38,46 +36,17 @@ The bragir CLI is a command-line application built using Click. Its primary purp
 
 In order to use the full potential of Bragir, FFmpeg is needed to be installed on the system and you need to obtain an Openai key.
 
-### FFmpeg
-#### Macos
+### As a package
+```zsh
+pip install bragir
+```
+
+### Brew
 **Using brew**
 
 ```zsh
-brew update && brew install ffmpeg
+brew update && brew install bragir
 ```
-
-#### Linux
-
-Update avaiable linux packages
-```bash
- sudo apt update
-```
-Install ffmpeg
-```bash
- sudo apt install ffmpeg
-```
-
-#### Windows
-
-Download the .exe from official [ffmpeg-website](https://ffmpeg.org/download.html)
-
-Extract the contents of the zip file and rename the file to FFmpeg.
-
-Move the folder into the main drive (Usually c:/)
-
-Open command prompt as administrator, and add FFmpeg to your system path
-
-```bash
-setx /m PATH "C:\ffmpeg\bin;%PATH%"
-```
-
-**Verifyting the installation**
-In order to see if the installation of FFmpeg is correct, run the following command
-```bash
-ffmpeg --version 
-```
-
-If a version is displayed, then FFmpeg is installed correctly.
 
 ### OpenAI
 
