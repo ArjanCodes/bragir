@@ -88,7 +88,6 @@ jobs:
         run: |
           NEW_VERSION="${{ needs.details.outputs.new_version }}"
           sed -i "s/version = \"[0-9]*\.[0-9]*\.[0-9]*\"/version = \"$NEW_VERSION\"/" $GITHUB_WORKSPACE/pyproject.toml
-          cat $GITHUB_WORKSPACE/pyproject.toml
 
       - name: Install dependencies
         run: uv sync
@@ -121,12 +120,12 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v3
 
-      # - name: Publish to PyPI
-      #   run: |
-      #     uv publish
+      - name: Publish to PyPI
+        run: |
+          uv publish
 
-      # - name: Publish distribution to PyPI
-      #   uses: pypa/gh-action-pypi-publish@release/v1
+      - name: Publish distribution to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
 
   github_release:
     name: Create GitHub Release
@@ -146,12 +145,12 @@ jobs:
           name: dist
           path: dist/
 
-      # - name: Create GitHub Release
-      #   id: create_release
-      #   env:
-      #     GH_TOKEN: ${{ github.token }}
-      #   run: |
-      #     gh release create ${{ needs.details.outputs.tag_name }} dist/* --title ${{ needs.details.outputs.tag_name }} --generate-notes
+      - name: Create GitHub Release
+        id: create_release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create ${{ needs.details.outputs.tag_name }} dist/* --title ${{ needs.details.outputs.tag_name }} --generate-notes
 
   bump_homebrew_formula:
     name: Dispatch event to Repo B
@@ -189,7 +188,7 @@ jobs:
       - name: Bump version
         run: |
           NEW_VERSION="${{ needs.details.outputs.new_version }}"
-          sed -i '' "s/version = \"[0-9]*\.[0-9]*\.[0-9]*\"/version = \"$NEW_VERSION\"/" pyproject.toml
+          sed -i "s/version = \"[0-9]*\.[0-9]*\.[0-9]*\"/version = \"$NEW_VERSION\"/" $GITHUB_WORKSPACE/pyproject.toml
 
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
