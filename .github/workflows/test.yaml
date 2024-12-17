@@ -7,23 +7,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.12
+        # Resolves Python Version from .python-version file if no python-version is provided
+        uses: actions/setup-python@v5
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v3
+        uses: astral-sh/setup-uv@v4
 
       - name: Run tests
-        run: |
-          uv sync --no-interaction --dev
+        run: uv sync --no-interaction --dev
 
       - name: Install ffmpeg
         run: sudo apt-get install ffmpeg
 
       - name: Run tests
-        run: |
-          uv run pytest
+        run: uv run pytest

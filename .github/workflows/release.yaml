@@ -24,25 +24,26 @@ jobs:
       suffix: ${{ steps.release.outputs.suffix }}
       tag_name: ${{ steps.release.outputs.tag_name }}
     steps:
-      - uses: actions/checkout@v2
+      - name: Check Ref Type
+        if: github.ref_type != 'tag'
+        run: echo "This is not a tag; exiting"; exit 1
 
       - name: Extract tag and Details
         id: release
         run: |
-          if [ "${{ github.ref_type }}" = "tag" ]; then
-            TAG_NAME=${GITHUB_REF#refs/tags/}
-            NEW_VERSION=$(echo $TAG_NAME | awk -F'-' '{print $1}')
-            SUFFIX=$(echo $TAG_NAME | grep -oP '[a-z]+[0-9]+' || echo "")
-            echo "new_version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
-            echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
-            echo "tag_name=$TAG_NAME" >> "$GITHUB_OUTPUT"
-            echo "Version is $NEW_VERSION"
-            echo "Suffix is $SUFFIX"
-            echo "Tag name is $TAG_NAME"
-          else
-            echo "No tag found"
-            exit 1
-          fi
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          NEW_VERSION=$(echo $TAG_NAME | awk -F'-' '{print $1}')
+          SUFFIX=$(echo $TAG_NAME | grep -oP '[a-z]+[0-9]+' || echo "")
+          echo "new_version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
+          echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
+          echo "tag_name=$TAG_NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Debug Outputs
+        if: env.RUNNER_DEBUG
+        run: |  
+          echo "Version is $NEW_VERSION"
+          echo "Suffix is $SUFFIX"
+          echo "Tag name is $TAG_NAME"
 
   check_pypi:
     needs: details
@@ -74,15 +75,14 @@ jobs:
     needs: [details, check_pypi]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.12"
+        # Resolves Python Version from .python-version file if no python-version is provided
+        uses: actions/setup-python@v5
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v3
+        uses: astral-sh/setup-uv@v4
 
       - name: Bump version
         run: |
@@ -93,11 +93,10 @@ jobs:
         run: uv sync
 
       - name: Build source and wheel distribution
-        run: |
-          uv build
+        run: uv build
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: dist
           path: dist/
@@ -112,42 +111,42 @@ jobs:
       id-token: write
     steps:
       - name: Download artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: dist
           path: dist/
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v3
+        uses: astral-sh/setup-uv@v4
 
       - name: Publish to PyPI
-        run: |
-          uv publish
+        run: uv publish
 
   github_release:
     name: Create GitHub Release
     needs: [setup_and_build, details]
     runs-on: ubuntu-latest
+    env:
+      TAG_NAME: ${{ needs.details.outputs.tag_name }}
     permissions:
       contents: write
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0 # Fetch full history to avoid issues with tags and branches
 
       - name: Download artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: dist
           path: dist/
 
       - name: Create GitHub Release
         id: create_release
+        run: gh release create ${{ env.TAG_NAME }} dist/* --title ${{ env.TAG_NAME }} --generate-notes
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release create ${{ needs.details.outputs.tag_name }} dist/* --title ${{ needs.details.outputs.tag_name }} --generate-notes
 
   bump_homebrew_formula:
     name: Dispatch event to Repo B
@@ -155,42 +154,45 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: release
+    env:
+      FORMULA_VERSION: ${{ needs.details.outputs.new_version }}
     steps:
       - name: Dispatch Repository Dispatch event
-        uses: peter-evans/repository-dispatch@v2
+        uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.BREW_TAP_TOKEN }}
           repository: ArjanCodes/homebrew-core
           event-type: "update-formula"
           client-payload: |-
             { 
-              "formula_version": "${{env.FORMULA_VERSION}}", 
+              "formula_version": "${{ env.FORMULA_VERSION }}", 
               "formula_url": "${{ env.FORMULA_URL }}", 
               "formula_name": "${{ env.FORMULA_NAME }}"
             }
         env:
-          FORMULA_VERSION: ${{ needs.details.outputs.new_version }}
           FORMULA_NAME: ${{ env.PACKAGE_NAME }}
-          FORMULA_URL: https://github.com/${{env.OWNER}}/${{env.PACKAGE_NAME}}/releases/download/${{ needs.details.outputs.new_version }}/${{env.PACKAGE_NAME}}-${{ needs.details.outputs.new_version }}.tar.gz
+          FORMULA_URL: https://github.com/${{ env.OWNER }}/${{ env.PACKAGE_NAME }}/releases/download/${{ env.FORMULA_VERSION }}/${{ env.PACKAGE_NAME }}-${{ env.FORMULA_VERSION }}.tar.gz
 
   bump_version:
     needs: [details, github_release, pypi_publish]
     runs-on: ubuntu-latest
+    env:
+      NEW_VERSION: ${{ needs.details.outputs.new_version }}
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0 # Fetch full history to avoid issues with tags and branches
 
       - name: Bump version
         run: |
-          NEW_VERSION="${{ needs.details.outputs.new_version }}"
+          NEW_VERSION=${{ env.NEW_VERSION }}
           sed -i "s/version = \"[0-9]*\.[0-9]*\.[0-9]*\"/version = \"$NEW_VERSION\"/" $GITHUB_WORKSPACE/pyproject.toml
 
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: Bumping version to ${{ needs.details.outputs.new_version }}
-          branch: bump-version-${{ needs.details.outputs.new_version }}
+          commit_message: Bumping version to ${{ env.NEW_VERSION }}
+          branch: bump-version-${{ env.NEW_VERSION }}
           file_pattern: "pyproject.toml"
           skip_dirty_check: true
           create_branch: true
