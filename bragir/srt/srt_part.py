@@ -1,6 +1,8 @@
 import re
 from dataclasses import dataclass
 
+from bragir.token_esitmator import TOKEN_REGEX
+
 
 @dataclass
 class SRTPart:
@@ -13,7 +15,7 @@ class SRTPart:
 
     @property
     def number_of_tokens(self) -> int:
-        words = re.findall(r"\w+|[^\w\s]", self.content, re.UNICODE)
+        words = re.findall(TOKEN_REGEX, self.content, re.UNICODE)
         return len(words) + self.content.count(" ")
 
     @property
@@ -25,8 +27,3 @@ class SRTPart:
     @property
     def translated_raw_srt_format(self) -> str:
         return f"{self.index}\n{self.start_time} --> {self.end_time}\n{self.translation}\n\n"
-
-
-def get_number_of_tokens(content: str) -> int:
-    words = re.findall(r"\w+|[^\w\s]", content, re.UNICODE)
-    return len(words) + content.count(" ")
