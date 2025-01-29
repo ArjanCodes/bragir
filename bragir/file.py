@@ -6,7 +6,8 @@ import click
 from bragir.audio.chunking import chunk_audio
 from bragir.files import File
 from bragir.languages import Languages
-from bragir.srt.srt_part import SRTPart, get_number_of_tokens
+from bragir.token_esitmator import get_number_of_tokens
+from bragir.srt.srt_part import SRTPart
 from bragir.tracing.logger import logger
 
 
