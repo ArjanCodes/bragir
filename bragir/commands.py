@@ -96,10 +96,11 @@ def transcribe(context: click.Context, path: str, output: str) -> None:
 )
 @click.pass_context
 @spinner("translate")
-def translate(context: click.Context, path: str, language: str) -> None:
+def translate(context: click.Context, path: str, language: tuple[str]) -> None:
     """
     The translate command, translates either a single SRT file or files or directory of SRT files into the wanted language.
     """
+
     translator: AsyncOpenAI = context.obj["client"]
 
     config = get_config()
@@ -136,22 +137,24 @@ def translate(context: click.Context, path: str, language: str) -> None:
 
         srt_parts: list[SRTPart] = get_srt_parts(file_content)
 
-        translated_parts = asyncio.run(
-            async_translate_srt_parts(
-                translator=translator, srt_parts=srt_parts, language=language
+        for translate_to_language in translate_to_languages:
+            translated_parts = asyncio.run(
+                async_translate_srt_parts(
+                    translator=translator,
+                    srt_parts=srt_parts,
+                    language=translate_to_language,
+                )
             )
-        )
 
-        for translated_part in translated_parts:
-            translated_part.translation = process_text(translated_part.translation)
+            for translated_part in translated_parts:
+                translated_part.translation = process_text(translated_part.translation)
 
-        translation: str = ""
+            translation: str = ""
 
-        for traslated_part in translated_parts:
-            translation += traslated_part.translated_raw_srt_format
+            for traslated_part in translated_parts:
+                translation += traslated_part.translated_raw_srt_format
 
-        for language in translate_to_languages:
-            new_file_path = get_new_file_path(file_path, language)
+            new_file_path = get_new_file_path(file_path, translate_to_language)
             create_file(new_file_path, translation)
             logger.info(f"Created file {new_file_path}")
 
