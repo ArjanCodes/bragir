@@ -1,6 +1,6 @@
 [project]
 name = "bragir"
-version = "1.4.5"
+version = "1.4.7"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
