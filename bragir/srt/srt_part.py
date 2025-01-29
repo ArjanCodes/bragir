@@ -15,7 +15,7 @@ class SRTPart:
 
     @property
     def number_of_tokens(self) -> int:
-        words = re.findall(TOKEN_REGEX, self.content, re.UNICODE)
+        words = re.findall(TOKEN_REGEX, self.content)
         return len(words) + self.content.count(" ")
 
     @property
