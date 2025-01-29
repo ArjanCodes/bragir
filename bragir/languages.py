@@ -1,5 +1,5 @@
 from enum import StrEnum, auto
-from typing import Any, Type
+from typing import Type
 
 BCP47_TAGS = {
     "PORTUGUESE": "pt",
@@ -52,7 +52,7 @@ def to_output(enum_class: Type[StrEnum]) -> str:
     return formatted_enum
 
 
-def parse_languages(input_languages: Any):
+def parse_languages(input_languages: tuple[str]) -> list[Languages]:
     valid_languages: list[Languages] = []
     valid_string_languages = [language.value.lower() for language in Languages]
 
