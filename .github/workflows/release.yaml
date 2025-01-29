@@ -13,8 +13,8 @@ env:
   OWNER: "ArjanCodes"
 
 jobs:
-  # unit-test:
-  #   uses: arjancodes/bragir/.github/workflows/test.yaml@main
+  unit-test:
+    uses: arjancodes/bragir/.github/workflows/test.yaml@main
 
   details:
     runs-on: ubuntu-latest
@@ -40,7 +40,7 @@ jobs:
 
       - name: Debug Outputs
         if: env.RUNNER_DEBUG
-        run: |  
+        run: |
           echo "Version is $NEW_VERSION"
           echo "Suffix is $SUFFIX"
           echo "Tag name is $TAG_NAME"
