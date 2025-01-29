@@ -34,8 +34,7 @@ def remove_space(text: str, index: int) -> str:
 def remove_space_as_first_character(text: str) -> str:
     if text[0] == " ":
         return remove_space(text, 0)
-    else:
-        return text
+    return text
 
 
 def remove_all_newline_before_first_character(text: str) -> str:
