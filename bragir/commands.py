@@ -62,8 +62,6 @@ def transcribe(context: click.Context, path: str, output: str) -> None:
             async_transcribe_file(transcriber=transcriber, path=file_path)
         )
 
-        print(transcripts)
-
         videos_srts: list[tuple[int, list[SRTPart]]] = [
             (order, get_srt_parts(transcript))
             for order, transcript in enumerate(transcripts)
@@ -143,7 +141,6 @@ def translate(context: click.Context, path: str, language: str) -> None:
                 translator=translator, srt_parts=srt_parts, language=language
             )
         )
-
 
         for translated_part in translated_parts:
             translated_part.translation = process_text(translated_part.translation)
